@@ -10,6 +10,7 @@ Base MVP de app de citas para Android con Flutter.
 - Safety base: reportes y bloqueos.
 - Push token registrado y Functions de push para match/mensaje.
 - Panel de moderacion basico para admins en Perfil.
+- Observabilidad de compras en Premium (status feed de `purchase_events`).
 
 ## Setup rapido
 
@@ -39,6 +40,11 @@ Con eso se habilita el panel "Moderacion (Admin)" en Perfil.
    - `TRUST_CLIENT_PURCHASES=true`
 5. Deploy:
    - `firebase deploy --only functions`
+
+## Nota de produccion (pagos)
+
+En release, la app exige `verificationData` para crear `purchase_events`.
+Si falta, rechaza la operacion localmente para evitar compras sin verificacion.
 
 ## QA checklist (Android fisico)
 

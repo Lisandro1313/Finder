@@ -45,16 +45,23 @@ class _PremiumTabState extends State<PremiumTab> {
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchase) async {
-    await widget.entitlementRepository.applyPurchase(
-      userId: widget.userId,
-      productId: purchase.productID,
-      purchaseId: purchase.purchaseID,
-      verificationData: purchase.verificationData.serverVerificationData,
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Compra enviada a verificacion de servidor.')),
-    );
+    try {
+      await widget.entitlementRepository.applyPurchase(
+        userId: widget.userId,
+        productId: purchase.productID,
+        purchaseId: purchase.purchaseID,
+        verificationData: purchase.verificationData.serverVerificationData,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Compra enviada a verificacion de servidor.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No pudimos procesar la compra. Intenta de nuevo.')),
+      );
+    }
   }
 
   @override

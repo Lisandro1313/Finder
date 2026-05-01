@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../billing/finder_products.dart';
 import '../models/purchase_event_item.dart';
@@ -63,6 +64,10 @@ class FirestoreEntitlementRepository implements EntitlementRepository {
     String? purchaseId,
     String? verificationData,
   }) async {
+    if (kReleaseMode && (verificationData == null || verificationData.trim().isEmpty)) {
+      throw StateError('Missing verificationData for release purchase flow');
+    }
+
     await _firestore.collection('purchase_events').add({
       'userId': userId,
       'productId': productId,
