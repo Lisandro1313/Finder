@@ -20,8 +20,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseBootstrap.ensureInitialized();
 
-  const forceMockBackend = bool.fromEnvironment('FINDER_FORCE_MOCK', defaultValue: false);
-  const useMockBackend = forceMockBackend || (kIsWeb && kDebugMode);
+  const useMockBackend = bool.fromEnvironment(
+    'FINDER_USE_MOCK_BACKEND',
+    defaultValue: kIsWeb && kDebugMode,
+  );
   final useFirebaseBackend = FirebaseBootstrap.isAvailable && !useMockBackend;
 
   final authRepository = useFirebaseBackend
