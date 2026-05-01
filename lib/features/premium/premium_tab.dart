@@ -66,6 +66,7 @@ class _PremiumTabState extends State<PremiumTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_loading) return const Center(child: CircularProgressIndicator());
 
     return StreamBuilder<UserEntitlements>(
@@ -74,36 +75,91 @@ class _PremiumTabState extends State<PremiumTab> {
         final ent = snapshot.data ?? UserEntitlements.empty;
 
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
           children: [
             Card(
-              child: ListTile(
-                title: Text(ent.plusActive ? 'Finder Plus activo' : 'Finder Plus inactivo'),
-                subtitle: Text('Boosts: ${ent.boostCount} | SuperLikes: ${ent.superLikeCount}'),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFE11D48), Color(0xFFFF8A65)],
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ent.plusActive ? 'Finder Plus activo' : 'Activa Finder Plus',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Mas alcance, mas visibilidad, mas chances reales de conectar.',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white.withOpacity(0.92)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _CounterCard(
+                            label: 'Boosts',
+                            value: '${ent.boostCount}',
+                            icon: Icons.local_fire_department_outlined,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _CounterCard(
+                            label: 'Super Likes',
+                            value: '${ent.superLikeCount}',
+                            icon: Icons.star_outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 10),
             if (!_billingService.isAvailable)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Text('Google Play Billing no disponible en este entorno.'),
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF2F4),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Text('Google Play Billing no disponible en este entorno.'),
               ),
             _PremiumProductTile(
               title: 'Finder Plus',
-              subtitle: 'Ver likes, undo y mas intentos diarios.',
+              subtitle: 'Ver likes, undo y mas intentos diarios',
               productId: FinderProducts.plusSubscription,
               billingService: _billingService,
               icon: Icons.workspace_premium_outlined,
             ),
             _PremiumProductTile(
               title: 'Boost',
-              subtitle: 'Mas visibilidad durante 30 minutos.',
+              subtitle: 'Mas visibilidad durante 30 minutos',
               productId: FinderProducts.boostPack,
               billingService: _billingService,
               icon: Icons.local_fire_department_outlined,
             ),
             _PremiumProductTile(
               title: 'Super Like',
-              subtitle: 'Apareces con prioridad.',
+              subtitle: 'Apareces con prioridad',
               productId: FinderProducts.superLikePack,
               billingService: _billingService,
               icon: Icons.star_border,
@@ -114,7 +170,7 @@ class _PremiumTabState extends State<PremiumTab> {
               child: const Text('Restaurar compras'),
             ),
             const SizedBox(height: 16),
-            const Text('Estado de compras', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Estado de compras', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             StreamBuilder<List<PurchaseEventItem>>(
               stream: widget.entitlementRepository.watchPurchaseEvents(widget.userId),
@@ -126,14 +182,17 @@ class _PremiumTabState extends State<PremiumTab> {
 
                 return Column(
                   children: events.map((event) {
-                    return ListTile(
-                      dense: true,
-                      leading: const Icon(Icons.receipt_long_outlined),
-                      title: Text(event.productId),
-                      subtitle: Text(
-                        event.reason == null
-                            ? 'Estado: ${event.status}'
-                            : 'Estado: ${event.status} | Motivo: ${event.reason}',
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        dense: true,
+                        leading: const Icon(Icons.receipt_long_outlined),
+                        title: Text(event.productId),
+                        subtitle: Text(
+                          event.reason == null
+                              ? 'Estado: ${event.status}'
+                              : 'Estado: ${event.status} | Motivo: ${event.reason}',
+                        ),
                       ),
                     );
                   }).toList(),
@@ -164,18 +223,81 @@ class _PremiumProductTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final product = billingService.findProduct(productId);
     final price = product?.price ?? 'Configurar en Play Console';
 
     return Card(
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: FilledButton(
-          onPressed: product == null ? null : () => billingService.buyProduct(productId),
-          child: Text(price),
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6F2FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFFE11D48)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: theme.textTheme.bodyMedium),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            FilledButton(
+              onPressed: product == null ? null : () => billingService.buyProduct(productId),
+              child: Text(price),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _CounterCard extends StatelessWidget {
+  const _CounterCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F3FF),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFFE11D48)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF6A607F))),
+                Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

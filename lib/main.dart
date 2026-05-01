@@ -179,6 +179,30 @@ class FinderApp extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: Colors.white.withOpacity(0.90),
+          indicatorColor: const Color(0x1AE11D48),
+          iconTheme: MaterialStateProperty.resolveWith<IconThemeData>((states) {
+            final selected = states.contains(MaterialState.selected);
+            return IconThemeData(
+              color: selected ? const Color(0xFFE11D48) : const Color(0xFF736A8A),
+            );
+          }),
+          labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((states) {
+            final selected = states.contains(MaterialState.selected);
+            return TextStyle(
+              color: selected ? const Color(0xFFE11D48) : const Color(0xFF736A8A),
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 12,
+            );
+          }),
+        ),
+        snackBarTheme: SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF2C2640),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          contentTextStyle: const TextStyle(color: Colors.white),
+        ),
         useMaterial3: true,
       ),
       home: FinderRoot(

@@ -13,6 +13,7 @@ import '../data/repositories/match_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/safety_repository.dart';
 import '../features/chats/chats_tab.dart';
+import '../features/common/finder_atmosphere.dart';
 import '../features/discover/discover_tab.dart';
 import '../features/matches/matches_tab.dart';
 import '../features/premium/premium_tab.dart';
@@ -100,6 +101,8 @@ class _FinderHomeState extends State<FinderHome> {
 
   @override
   Widget build(BuildContext context) {
+    const tabTitles = ['Descubrir', 'Matches', 'Chats', 'Premium', 'Perfil'];
+
     final tabs = [
       DiscoverTab(
         profiles: _profiles,
@@ -134,18 +137,49 @@ class _FinderHomeState extends State<FinderHome> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Finder')),
-      body: tabs[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.favorite_outline), label: 'Descubrir'),
-          NavigationDestination(icon: Icon(Icons.people_outline), label: 'Matches'),
-          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
-          NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Premium'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Perfil'),
-        ],
+      extendBody: true,
+      appBar: AppBar(
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: Text(
+            tabTitles[_currentIndex],
+            key: ValueKey(_currentIndex),
+          ),
+        ),
+      ),
+      body: FinderAtmosphere(
+        child: SafeArea(
+          top: false,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 280),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            child: KeyedSubtree(
+              key: ValueKey(_currentIndex),
+              child: tabs[_currentIndex],
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) => setState(() => _currentIndex = index),
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.favorite_outline), label: 'Descubrir'),
+              NavigationDestination(icon: Icon(Icons.people_outline), label: 'Matches'),
+              NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
+              NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Premium'),
+              NavigationDestination(icon: Icon(Icons.person_outline), label: 'Perfil'),
+            ],
+          ),
+        ),
       ),
     );
   }

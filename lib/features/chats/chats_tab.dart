@@ -45,28 +45,31 @@ class ChatsTab extends StatelessWidget {
             final timeAgo = formatTimeAgo(match.updatedAt);
             final sentByMe = match.lastSenderId == currentUserId;
 
-            return ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              leading: const CircleAvatar(child: Icon(Icons.chat_bubble_outline)),
-              title: Text(otherId),
-              subtitle: Text(
-                '${sentByMe ? 'Tu: ' : ''}${match.lastMessage}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: Text(timeAgo, style: theme.textTheme.bodySmall),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ChatScreen(
-                      matchId: match.id,
-                      currentUserId: currentUserId,
-                      chatRepository: chatRepository,
-                      chatTitle: otherId,
+            return Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                leading: const CircleAvatar(child: Icon(Icons.chat_bubble_outline)),
+                title: Text(otherId),
+                subtitle: Text(
+                  '${sentByMe ? 'Tu: ' : ''}${match.lastMessage}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Text(timeAgo, style: theme.textTheme.bodySmall),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(
+                        matchId: match.id,
+                        currentUserId: currentUserId,
+                        chatRepository: chatRepository,
+                        chatTitle: otherId,
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           },
         );
