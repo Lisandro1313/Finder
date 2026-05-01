@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/report_item.dart';
+import '../../data/models/user_preferences.dart';
 import '../../data/models/user_profile.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/repositories/safety_repository.dart';
@@ -28,11 +29,17 @@ class ProfileTab extends StatefulWidget {
 class _ProfileTabState extends State<ProfileTab> {
   final _targetController = TextEditingController();
   final _reasonController = TextEditingController(text: 'comportamiento inapropiado');
+  final _minAgeController = TextEditingController();
+  final _maxAgeController = TextEditingController();
+  final _maxDistanceController = TextEditingController();
 
   @override
   void dispose() {
     _targetController.dispose();
     _reasonController.dispose();
+    _minAgeController.dispose();
+    _maxAgeController.dispose();
+    _maxDistanceController.dispose();
     super.dispose();
   }
 
@@ -60,6 +67,8 @@ class _ProfileTabState extends State<ProfileTab> {
             ListTile(title: const Text('Bio'), subtitle: Text(profile.bio)),
             ListTile(title: const Text('Distancia max'), subtitle: Text('${profile.distanceKm} km')),
             const SizedBox(height: 20),
+            _buildPreferencesEditor(),
+            const SizedBox(height: 20),
             const Text('Seguridad', style: TextStyle(fontWeight: FontWeight.bold)),
             TextField(
               controller: _targetController,
@@ -75,6 +84,30 @@ class _ProfileTabState extends State<ProfileTab> {
             OutlinedButton(onPressed: _reportUser, child: const Text('Reportar usuario')),
             const SizedBox(height: 20),
             _buildAdminPanel(),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPreferencesEditor() {
+    return StreamBuilder<UserPreferences>(
+      stream: widget.profileRepository.watchPreferences(widget.currentUserId),
+      builder: (context, snapshot) {
+        final prefs = snapshot.data ?? UserPreferences.defaults;
+        _minAgeController.text = prefs.minAge.toString();
+        _maxAgeController.text = prefs.maxAge.toString();
+        _maxDistanceController.text = prefs.maxDistanceKm.toString();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Preferencias de busqueda', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextField(controller: _minAgeController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Edad minima')),
+            TextField(controller: _maxAgeController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Edad maxima')),
+            TextField(controller: _maxDistanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Distancia maxima (km)')),
+            const SizedBox(height: 8),
+            FilledButton.tonal(onPressed: _savePreferences, child: const Text('Guardar preferencias')),
           ],
         );
       },
@@ -128,6 +161,28 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Future<void> _logout() async {
     await widget.onLogout();
+  }
+
+  Future<void> _savePreferences() async {
+    final minAge = int.tryParse(_minAgeController.text.trim()) ?? UserPreferences.defaults.minAge;
+    final maxAge = int.tryParse(_maxAgeController.text.trim()) ?? UserPreferences.defaults.maxAge;
+    final maxDistance = int.tryParse(_maxDistanceController.text.trim()) ?? UserPreferences.defaults.maxDistanceKm;
+
+    final normalizedMin = minAge < 18 ? 18 : minAge;
+    final normalizedMax = maxAge < normalizedMin ? normalizedMin : maxAge;
+    final normalizedDistance = maxDistance < 1 ? 1 : maxDistance;
+
+    await widget.profileRepository.savePreferences(
+      userId: widget.currentUserId,
+      preferences: UserPreferences(
+        minAge: normalizedMin,
+        maxAge: normalizedMax,
+        maxDistanceKm: normalizedDistance,
+      ),
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferencias guardadas.')));
   }
 
   Future<void> _blockUser() async {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/models/app_user.dart';
 import '../data/models/finder_profile.dart';
 import '../data/models/user_entitlements.dart';
+import '../data/models/user_preferences.dart';
 import '../data/repositories/chat_repository.dart';
 import '../data/repositories/discover_repository.dart';
 import '../data/repositories/entitlement_repository.dart';
@@ -49,7 +50,9 @@ class _FinderHomeState extends State<FinderHome> {
   int _profileIndex = 0;
   List<FinderProfile> _profiles = const [];
   UserEntitlements _entitlements = UserEntitlements.empty;
+  UserPreferences _preferences = UserPreferences.defaults;
   StreamSubscription<UserEntitlements>? _entSub;
+  StreamSubscription<UserPreferences>? _prefSub;
 
   @override
   void initState() {
@@ -66,18 +69,32 @@ class _FinderHomeState extends State<FinderHome> {
         }
       });
     });
+    _prefSub = widget.profileRepository.watchPreferences(widget.currentUser.id).listen((value) {
+      if (!mounted) return;
+      setState(() => _preferences = value);
+      _loadProfiles();
+    });
   }
 
   @override
   void dispose() {
     _entSub?.cancel();
+    _prefSub?.cancel();
     super.dispose();
   }
 
   Future<void> _loadProfiles() async {
-    final profiles = await widget.discoverRepository.fetchProfiles(currentUserId: widget.currentUser.id);
+    final profiles = await widget.discoverRepository.fetchProfiles(
+      currentUserId: widget.currentUser.id,
+      preferences: _preferences,
+    );
     if (!mounted) return;
-    setState(() => _profiles = profiles);
+    setState(() {
+      _profiles = profiles;
+      if (_profileIndex >= _profiles.length) {
+        _profileIndex = 0;
+      }
+    });
   }
 
   @override

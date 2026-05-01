@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/user_preferences.dart';
 import '../models/user_profile.dart';
 
 abstract class ProfileRepository {
   Stream<UserProfile?> watchProfile(String userId);
   Future<void> saveProfile(UserProfile profile);
   Future<void> savePushToken({required String userId, required String token});
+  Stream<UserPreferences> watchPreferences(String userId);
+  Future<void> savePreferences({required String userId, required UserPreferences preferences});
 }
 
 class FirestoreProfileRepository implements ProfileRepository {
@@ -46,10 +49,33 @@ class FirestoreProfileRepository implements ProfileRepository {
       'pushTokenUpdatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
+
+  @override
+  Stream<UserPreferences> watchPreferences(String userId) {
+    return _firestore.collection('users').doc(userId).snapshots().map((doc) {
+      final data = doc.data() ?? <String, dynamic>{};
+      return UserPreferences(
+        minAge: (data['prefMinAge'] as num?)?.toInt() ?? UserPreferences.defaults.minAge,
+        maxAge: (data['prefMaxAge'] as num?)?.toInt() ?? UserPreferences.defaults.maxAge,
+        maxDistanceKm: (data['prefMaxDistanceKm'] as num?)?.toInt() ?? UserPreferences.defaults.maxDistanceKm,
+      );
+    });
+  }
+
+  @override
+  Future<void> savePreferences({required String userId, required UserPreferences preferences}) async {
+    await _firestore.collection('users').doc(userId).set({
+      'prefMinAge': preferences.minAge,
+      'prefMaxAge': preferences.maxAge,
+      'prefMaxDistanceKm': preferences.maxDistanceKm,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 }
 
 class MockProfileRepository implements ProfileRepository {
   UserProfile? _profile;
+  UserPreferences _preferences = UserPreferences.defaults;
 
   @override
   Future<void> saveProfile(UserProfile profile) async {
@@ -62,5 +88,15 @@ class MockProfileRepository implements ProfileRepository {
   @override
   Stream<UserProfile?> watchProfile(String userId) async* {
     yield _profile;
+  }
+
+  @override
+  Future<void> savePreferences({required String userId, required UserPreferences preferences}) async {
+    _preferences = preferences;
+  }
+
+  @override
+  Stream<UserPreferences> watchPreferences(String userId) async* {
+    yield _preferences;
   }
 }

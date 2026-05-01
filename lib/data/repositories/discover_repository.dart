@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/finder_profile.dart';
+import '../models/user_preferences.dart';
 
 abstract class DiscoverRepository {
-  Future<List<FinderProfile>> fetchProfiles({required String currentUserId});
+  Future<List<FinderProfile>> fetchProfiles({
+    required String currentUserId,
+    required UserPreferences preferences,
+  });
 }
 
 class FirestoreDiscoverRepository implements DiscoverRepository {
@@ -12,8 +16,8 @@ class FirestoreDiscoverRepository implements DiscoverRepository {
   final FirebaseFirestore _firestore;
 
   @override
-  Future<List<FinderProfile>> fetchProfiles({required String currentUserId}) async {
-    final snapshot = await _firestore.collection('profiles').limit(50).get();
+  Future<List<FinderProfile>> fetchProfiles({required String currentUserId, required UserPreferences preferences}) async {
+    final snapshot = await _firestore.collection('profiles').limit(100).get();
     final profiles = snapshot.docs
         .where((doc) => doc.id != currentUserId)
         .map((doc) {
@@ -26,10 +30,12 @@ class FirestoreDiscoverRepository implements DiscoverRepository {
             bio: data['bio'] as String? ?? 'Sin bio por ahora.',
           );
         })
+        .where((p) => p.age >= preferences.minAge && p.age <= preferences.maxAge)
+        .where((p) => p.distanceKm <= preferences.maxDistanceKm)
         .toList();
 
     if (profiles.isEmpty) {
-      return MockDiscoverRepository().fetchProfiles(currentUserId: currentUserId);
+      return MockDiscoverRepository().fetchProfiles(currentUserId: currentUserId, preferences: preferences);
     }
 
     return profiles;
@@ -38,8 +44,8 @@ class FirestoreDiscoverRepository implements DiscoverRepository {
 
 class MockDiscoverRepository implements DiscoverRepository {
   @override
-  Future<List<FinderProfile>> fetchProfiles({required String currentUserId}) async {
-    return const [
+  Future<List<FinderProfile>> fetchProfiles({required String currentUserId, required UserPreferences preferences}) async {
+    const all = [
       FinderProfile(
         id: 'mia_24',
         name: 'Mia',
@@ -62,5 +68,10 @@ class MockDiscoverRepository implements DiscoverRepository {
         bio: 'Me gusta bailar, hablar de todo y salir.',
       ),
     ];
+
+    return all
+        .where((p) => p.age >= preferences.minAge && p.age <= preferences.maxAge)
+        .where((p) => p.distanceKm <= preferences.maxDistanceKm)
+        .toList();
   }
 }
