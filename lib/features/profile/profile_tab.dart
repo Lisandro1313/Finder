@@ -14,6 +14,7 @@ class ProfileTab extends StatefulWidget {
     required this.safetyRepository,
     required this.sessionLabel,
     required this.onLogout,
+    required this.onResetFeed,
   });
 
   final String currentUserId;
@@ -21,6 +22,7 @@ class ProfileTab extends StatefulWidget {
   final SafetyRepository safetyRepository;
   final String sessionLabel;
   final Future<void> Function() onLogout;
+  final Future<void> Function() onResetFeed;
 
   @override
   State<ProfileTab> createState() => _ProfileTabState();
@@ -60,6 +62,12 @@ class _ProfileTabState extends State<ProfileTab> {
             ListTile(title: const Text('Sesion'), subtitle: Text(widget.sessionLabel)),
             ListTile(title: const Text('User ID'), subtitle: Text(widget.currentUserId)),
             FilledButton.tonal(onPressed: _logout, child: const Text('Cerrar sesion')),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _confirmResetFeed,
+              icon: const Icon(Icons.restart_alt),
+              label: const Text('Reset feed'),
+            ),
             const SizedBox(height: 20),
             const Text('Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
             ListTile(title: const Text('Nombre'), subtitle: Text(profile.name)),
@@ -161,6 +169,27 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Future<void> _logout() async {
     await widget.onLogout();
+  }
+
+  Future<void> _confirmResetFeed() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Reset feed'),
+          content: const Text('Se volveran a mostrar perfiles ya vistos. Deseas continuar?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Resetear')),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
+    await widget.onResetFeed();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Feed reseteado.')));
   }
 
   Future<void> _savePreferences() async {

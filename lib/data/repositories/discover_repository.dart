@@ -13,6 +13,7 @@ abstract class DiscoverRepository {
     required String targetUserId,
     required String action,
   });
+  Future<void> clearSeenProfiles({required String currentUserId});
 }
 
 class FirestoreDiscoverRepository implements DiscoverRepository {
@@ -70,6 +71,17 @@ class FirestoreDiscoverRepository implements DiscoverRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
+
+  @override
+  Future<void> clearSeenProfiles({required String currentUserId}) async {
+    final coll = _firestore.collection('users').doc(currentUserId).collection('seen_profiles');
+    final snap = await coll.limit(500).get();
+    final batch = _firestore.batch();
+    for (final doc in snap.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
 }
 
 class MockDiscoverRepository implements DiscoverRepository {
@@ -115,5 +127,10 @@ class MockDiscoverRepository implements DiscoverRepository {
     required String action,
   }) async {
     _seen.add(targetUserId);
+  }
+
+  @override
+  Future<void> clearSeenProfiles({required String currentUserId}) async {
+    _seen.clear();
   }
 }

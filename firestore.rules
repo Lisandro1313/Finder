@@ -24,8 +24,7 @@ service cloud.firestore {
     }
 
     match /users/{userId}/seen_profiles/{targetUserId} {
-      allow read, create, update: if isSignedIn() && request.auth.uid == userId;
-      allow delete: if false;
+      allow read, create, update, delete: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /profiles/{profileId} {

@@ -129,6 +129,7 @@ class _FinderHomeState extends State<FinderHome> {
         safetyRepository: widget.safetyRepository,
         sessionLabel: widget.currentUser.sessionLabel,
         onLogout: widget.onLogout,
+        onResetFeed: _resetFeed,
       ),
     ];
 
@@ -296,6 +297,13 @@ class _FinderHomeState extends State<FinderHome> {
       userId: widget.currentUser.id,
       preferences: next,
     );
+    await _loadProfiles();
+  }
+
+  Future<void> _resetFeed() async {
+    await widget.discoverRepository.clearSeenProfiles(currentUserId: widget.currentUser.id);
+    if (!mounted) return;
+    setState(() => _profileIndex = 0);
     await _loadProfiles();
   }
 }
