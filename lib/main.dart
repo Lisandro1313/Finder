@@ -87,10 +87,98 @@ class FinderApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const brand = Color(0xFFE11D48);
+    const accent = Color(0xFFFF6B6B);
+    const neutralBg = Color(0xFFF8F7FC);
+    final baseScheme = ColorScheme.fromSeed(seedColor: brand);
+
     return MaterialApp(
       title: 'Finder',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEF476F)),
+        colorScheme: baseScheme.copyWith(
+          primary: brand,
+          secondary: accent,
+          surface: Colors.white,
+        ),
+        scaffoldBackgroundColor: neutralBg,
+        appBarTheme: const AppBarTheme(
+          centerTitle: false,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Color(0xFF1F1B2D),
+          titleTextStyle: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF1F1B2D),
+            letterSpacing: -0.5,
+          ),
+        ),
+        cardTheme: CardTheme(
+          color: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        ),
+        textTheme: ThemeData.light().textTheme.copyWith(
+              displaySmall: const TextStyle(
+                fontSize: 44,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1F1B2D),
+                letterSpacing: -1.2,
+              ),
+              headlineSmall: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1F1B2D),
+                letterSpacing: -0.7,
+              ),
+              titleMedium: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1F1B2D),
+              ),
+              bodyLarge: const TextStyle(
+                fontSize: 20,
+                height: 1.45,
+                color: Color(0xFF3A3451),
+              ),
+              bodyMedium: const TextStyle(
+                fontSize: 16,
+                height: 1.45,
+                color: Color(0xFF5A546F),
+              ),
+            ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: brand, width: 1.5),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: brand,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF1F1B2D),
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            side: const BorderSide(color: Color(0xFFD8D3E8)),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+        ),
         useMaterial3: true,
       ),
       home: FinderRoot(

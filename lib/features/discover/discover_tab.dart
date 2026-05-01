@@ -37,8 +37,19 @@ class DiscoverTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (profiles.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 14),
+            Text('Buscando perfiles...', style: theme.textTheme.bodyMedium),
+          ],
+        ),
+      );
     }
 
     final profile = profiles[profileIndex % profiles.length];
@@ -49,12 +60,20 @@ class DiscoverTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Card(
-            color: Theme.of(context).colorScheme.secondaryContainer,
             child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                'Likes: $dailyLikesLeft | Super Likes: $superLikesLeft\n'
-                'Filtro: ${preferences.minAge}-${preferences.maxAge} anos, hasta ${preferences.maxDistanceKm} km',
+              padding: const EdgeInsets.all(16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _PillStat(label: 'Likes hoy', value: '$dailyLikesLeft'),
+                  _PillStat(label: 'Super Likes', value: '$superLikesLeft'),
+                  _PillStat(
+                    label: 'Filtro',
+                    value:
+                        '${preferences.minAge}-${preferences.maxAge} anos | ${preferences.maxDistanceKm} km',
+                  ),
+                ],
               ),
             ),
           ),
@@ -95,14 +114,17 @@ class DiscoverTab extends StatelessWidget {
                   children: [
                     Text(
                       '${profile.name}, ${profile.age}',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 8),
-                    Text('A ${profile.distanceKm} km'),
+                    Text('A ${profile.distanceKm} km', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 12),
-                    Text(profile.bio),
+                    Text(profile.bio, style: theme.textTheme.bodyLarge),
                     const Spacer(),
-                    const Text('MVP: swipe + likes + superlikes + chat en tiempo real.'),
+                    Text(
+                      'Desliza, conecta y arranca chat en segundos.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ),
@@ -114,7 +136,7 @@ class DiscoverTab extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onPass,
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close_rounded),
                   label: const Text('Pasar'),
                 ),
               ),
@@ -122,7 +144,7 @@ class DiscoverTab extends StatelessWidget {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: onLike,
-                  icon: const Icon(Icons.favorite),
+                  icon: const Icon(Icons.favorite_rounded),
                   label: const Text('Like'),
                 ),
               ),
@@ -162,6 +184,25 @@ class DiscoverTab extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PillStat extends StatelessWidget {
+  const _PillStat({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF2EFF8),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text('$label: $value'),
     );
   }
 }

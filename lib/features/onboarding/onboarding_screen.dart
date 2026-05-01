@@ -35,32 +35,86 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Completa tu perfil')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nombre')),
-            TextField(
-              controller: _ageController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Edad'),
-            ),
-            TextField(controller: _bioController, decoration: const InputDecoration(labelText: 'Bio')),
-            TextField(
-              controller: _distanceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Distancia max (km)'),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Guardar y continuar'),
-            ),
-          ],
+      appBar: AppBar(title: const Text('Tu perfil')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Completa tu perfil', style: theme.textTheme.headlineSmall),
+                      const SizedBox(height: 8),
+                      Text(
+                        'En 1 minuto ya podes empezar a descubrir gente cerca.',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _nameController,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _ageController,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Edad',
+                  prefixIcon: Icon(Icons.cake_outlined),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _bioController,
+                textInputAction: TextInputAction.next,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Bio',
+                  alignLabelWithHint: true,
+                  prefixIcon: Icon(Icons.edit_note_outlined),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _distanceController,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(
+                  labelText: 'Distancia maxima (km)',
+                  prefixIcon: Icon(Icons.location_on_outlined),
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: _saving ? null : _save,
+                icon: _saving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.check_circle_outline),
+                label: const Text('Guardar y continuar'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -68,9 +122,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    final age = int.tryParse(_ageController.text.trim()) ?? 18;
+    final age = (int.tryParse(_ageController.text.trim()) ?? 18).clamp(18, 99).toInt();
     final bio = _bioController.text.trim();
-    final distanceKm = int.tryParse(_distanceController.text.trim()) ?? 10;
+    final distanceKm =
+        (int.tryParse(_distanceController.text.trim()) ?? 10).clamp(1, 200).toInt();
 
     if (name.isEmpty || bio.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

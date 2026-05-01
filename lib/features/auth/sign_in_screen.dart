@@ -14,43 +14,114 @@ class SignInScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-              Text('Finder', style: Theme.of(context).textTheme.displaySmall),
-              const SizedBox(height: 8),
-              Text(
-                'Conecta con gente cerca, haz match y chatea en tiempo real.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const Spacer(),
-              FilledButton(
-                onPressed: isLoading ? null : onContinueWithGoogle,
-                child: isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Continuar con Google'),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: isLoading ? null : onContinueAsGuest,
-                child: const Text('Entrar como invitado'),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Tip: si Google falla en local, usa invitado para seguir testeando.',
-                textAlign: TextAlign.center,
-              ),
-            ],
+      body: Stack(
+        children: [
+          Positioned(
+            top: -120,
+            left: -80,
+            child: _BlurCircle(
+              size: 260,
+              color: theme.colorScheme.primary.withAlpha(56),
+            ),
           ),
+          Positioned(
+            bottom: -130,
+            right: -80,
+            child: _BlurCircle(
+              size: 300,
+              color: theme.colorScheme.secondary.withAlpha(51),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 54,
+                    width: 54,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE11D48), Color(0xFFFF6B6B)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.favorite, color: Colors.white, size: 28),
+                  ),
+                  const SizedBox(height: 28),
+                  Text('Finder', style: theme.textTheme.displaySmall),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Conecta con gente cerca, haz match y chatea en tiempo real.',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const Spacer(),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: isLoading ? null : onContinueWithGoogle,
+                            icon: const Icon(Icons.g_mobiledata, size: 24),
+                            label: isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Text('Continuar con Google'),
+                          ),
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            onPressed: isLoading ? null : onContinueAsGuest,
+                            icon: const Icon(Icons.person_outline),
+                            label: const Text('Entrar como invitado'),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Si Google falla en local, usa invitado para seguir testeando.',
+                            style: theme.textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BlurCircle extends StatelessWidget {
+  const _BlurCircle({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withAlpha(0)],
+          stops: const [0.2, 1],
         ),
       ),
     );
