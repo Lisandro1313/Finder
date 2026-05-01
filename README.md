@@ -9,6 +9,7 @@ Base MVP de app de citas para Android con Flutter.
 - Compras Play Billing con pipeline server-side (`purchase_events`).
 - Safety base: reportes y bloqueos.
 - Push token registrado y Functions de push para match/mensaje.
+- Panel de moderacion basico para admins en Perfil.
 
 ## Setup rapido
 
@@ -21,6 +22,11 @@ Base MVP de app de citas para Android con Flutter.
    - Firestore Database
    - Cloud Messaging
 6. Publicar reglas `firestore.rules`.
+
+## Activar admin para moderacion
+
+Crear documento en `admin_users/{uid}` para el usuario que administrara reportes.
+Con eso se habilita el panel "Moderacion (Admin)" en Perfil.
 
 ## Cloud Functions
 
@@ -44,6 +50,7 @@ Base MVP de app de citas para Android con Flutter.
 6. Comprar producto test en Play y verificar `purchase_events` -> `status: applied`.
 7. Verificar aumento de entitlements (`plusActive`, `boostCount`, `superLikeCount`).
 8. Bloquear/reportar usuario y confirmar que bloqueados no matchean.
+9. Como admin, revisar reportes en Perfil y marcarlos revisados.
 
 ## Ejecutar app
 

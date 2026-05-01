@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/report_item.dart';
+
 abstract class SafetyRepository {
   Future<void> blockUser({required String byUserId, required String targetUserId});
   Future<void> reportUser({
@@ -8,6 +10,9 @@ abstract class SafetyRepository {
     required String reason,
   });
   Future<bool> isBlockedEitherWay({required String userA, required String userB});
+  Stream<bool> watchIsAdmin(String userId);
+  Stream<List<ReportItem>> watchRecentReports();
+  Future<void> markReportReviewed(String reportId, String reviewerId);
 }
 
 class FirestoreSafetyRepository implements SafetyRepository {
@@ -31,6 +36,7 @@ class FirestoreSafetyRepository implements SafetyRepository {
       'byUserId': byUserId,
       'targetUserId': targetUserId,
       'reason': reason,
+      'status': 'open',
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
@@ -41,6 +47,42 @@ class FirestoreSafetyRepository implements SafetyRepository {
     if (one.exists) return true;
     final two = await _firestore.collection('blocks').doc('${userB}_$userA').get();
     return two.exists;
+  }
+
+  @override
+  Stream<bool> watchIsAdmin(String userId) {
+    return _firestore.collection('admin_users').doc(userId).snapshots().map((doc) => doc.exists);
+  }
+
+  @override
+  Stream<List<ReportItem>> watchRecentReports() {
+    return _firestore
+        .collection('reports')
+        .orderBy('createdAt', descending: true)
+        .limit(50)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map(
+            (doc) => ReportItem(
+              id: doc.id,
+              byUserId: doc.data()['byUserId'] as String? ?? '',
+              targetUserId: doc.data()['targetUserId'] as String? ?? '',
+              reason: doc.data()['reason'] as String? ?? '',
+              status: doc.data()['status'] as String? ?? 'open',
+            ),
+          )
+          .toList();
+    });
+  }
+
+  @override
+  Future<void> markReportReviewed(String reportId, String reviewerId) async {
+    await _firestore.collection('reports').doc(reportId).set({
+      'status': 'reviewed',
+      'reviewedBy': reviewerId,
+      'reviewedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 }
 
@@ -53,4 +95,17 @@ class MockSafetyRepository implements SafetyRepository {
 
   @override
   Future<void> reportUser({required String byUserId, required String targetUserId, required String reason}) async {}
+
+  @override
+  Stream<bool> watchIsAdmin(String userId) async* {
+    yield false;
+  }
+
+  @override
+  Stream<List<ReportItem>> watchRecentReports() async* {
+    yield const [];
+  }
+
+  @override
+  Future<void> markReportReviewed(String reportId, String reviewerId) async {}
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/report_item.dart';
 import '../../data/models/user_profile.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/repositories/safety_repository.dart';
@@ -51,10 +52,7 @@ class _ProfileTabState extends State<ProfileTab> {
             const Text('Cuenta', style: TextStyle(fontWeight: FontWeight.bold)),
             ListTile(title: const Text('Sesion'), subtitle: Text(widget.sessionLabel)),
             ListTile(title: const Text('User ID'), subtitle: Text(widget.currentUserId)),
-            FilledButton.tonal(
-              onPressed: _logout,
-              child: const Text('Cerrar sesion'),
-            ),
+            FilledButton.tonal(onPressed: _logout, child: const Text('Cerrar sesion')),
             const SizedBox(height: 20),
             const Text('Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
             ListTile(title: const Text('Nombre'), subtitle: Text(profile.name)),
@@ -72,14 +70,55 @@ class _ProfileTabState extends State<ProfileTab> {
               decoration: const InputDecoration(labelText: 'Motivo de reporte'),
             ),
             const SizedBox(height: 8),
-            FilledButton(
-              onPressed: _blockUser,
-              child: const Text('Bloquear usuario'),
-            ),
+            FilledButton(onPressed: _blockUser, child: const Text('Bloquear usuario')),
             const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: _reportUser,
-              child: const Text('Reportar usuario'),
+            OutlinedButton(onPressed: _reportUser, child: const Text('Reportar usuario')),
+            const SizedBox(height: 20),
+            _buildAdminPanel(),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAdminPanel() {
+    return StreamBuilder<bool>(
+      stream: widget.safetyRepository.watchIsAdmin(widget.currentUserId),
+      builder: (context, snapshot) {
+        final isAdmin = snapshot.data == true;
+        if (!isAdmin) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Moderacion (Admin)', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            StreamBuilder<List<ReportItem>>(
+              stream: widget.safetyRepository.watchRecentReports(),
+              builder: (context, reportSnap) {
+                final reports = reportSnap.data ?? const [];
+                if (reports.isEmpty) return const Text('No hay reportes por revisar.');
+
+                return Column(
+                  children: reports.map((report) {
+                    return Card(
+                      child: ListTile(
+                        title: Text('Target: ${report.targetUserId}'),
+                        subtitle: Text('By: ${report.byUserId}\n${report.reason}\nEstado: ${report.status}'),
+                        isThreeLine: true,
+                        trailing: report.status == 'reviewed'
+                            ? const Icon(Icons.check, color: Colors.green)
+                            : OutlinedButton(
+                                onPressed: () => _markReviewed(report.id),
+                                child: const Text('Revisado'),
+                              ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ],
         );
@@ -110,5 +149,11 @@ class _ProfileTabState extends State<ProfileTab> {
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reporte enviado.')));
+  }
+
+  Future<void> _markReviewed(String reportId) async {
+    await widget.safetyRepository.markReportReviewed(reportId, widget.currentUserId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reporte marcado como revisado.')));
   }
 }

@@ -5,8 +5,17 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admin_users/$(request.auth.uid));
+    }
+
     function isMatchParticipant(matchId) {
       return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/matches/$(matchId)).data.users;
+    }
+
+    match /admin_users/{userId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow create, update, delete: if isAdmin();
     }
 
     match /users/{userId} {
@@ -57,7 +66,9 @@ service cloud.firestore {
 
     match /reports/{reportId} {
       allow create: if isSignedIn() && request.resource.data.byUserId == request.auth.uid;
-      allow read, update, delete: if false;
+      allow read: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if false;
     }
   }
 }
