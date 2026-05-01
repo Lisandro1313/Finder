@@ -1,0 +1,56 @@
+# Release Checklist (Closed Testing)
+
+## 1) Firebase + Play setup
+
+- [ ] `android/app/google-services.json` final
+- [ ] SHA-1 and SHA-256 loaded in Firebase Project Settings
+- [ ] Firebase Auth: Google + Anonymous enabled
+- [ ] Firestore database enabled
+- [ ] Cloud Messaging enabled
+- [ ] Firestore rules deployed (`firestore.rules`)
+
+## 2) Functions setup
+
+- [ ] `npm ci` inside `functions/`
+- [ ] Env var `ANDROID_PACKAGE_NAME` configured in Functions
+- [ ] (Optional dev only) `TRUST_CLIENT_PURCHASES=true`
+- [ ] Functions deployed (`firebase deploy --only functions`)
+
+## 3) App quality gates
+
+- [ ] `flutter analyze` passes
+- [ ] `flutter test` passes
+- [ ] CI workflow green on `main`
+
+## 4) Payments QA
+
+- [ ] Product IDs exist in Play Console:
+  - `finder_plus_monthly`
+  - `finder_boost_pack`
+  - `finder_superlike_pack`
+- [ ] Test purchase succeeds
+- [ ] `purchase_events` gets `status: applied`
+- [ ] Entitlements update in `users/{uid}`
+
+## 5) E2E social flow
+
+- [ ] User A and B login
+- [ ] Match created
+- [ ] Chat message received
+- [ ] Push notification received
+- [ ] Block/report flow works
+
+## 6) Build and upload
+
+- [ ] Build AAB
+- [ ] Upload to Play Console closed testing
+- [ ] Add testers
+- [ ] Validate crash-free startup and core flows
+
+## Helper
+
+Run local preflight:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/preflight.ps1
+```

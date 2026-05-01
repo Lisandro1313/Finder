@@ -68,3 +68,13 @@ flutter run
 ## Nota
 
 Si Firebase no esta configurado aun, la app entra en modo mock automaticamente.
+
+## Preflight de release
+
+Checklist completo: `RELEASE_CHECKLIST.md`
+
+Chequeo automatico local:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/preflight.ps1
+```
