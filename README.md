@@ -4,12 +4,10 @@ Base MVP de app de citas para Android con Flutter.
 
 ## Estado actual
 
-- Flujo inicial de login.
-- Autenticacion integrada por Firebase Auth (anonima para MVP).
-- Descubrir perfiles + likes + superlikes + matches + chat.
-- Compras Play Billing con encolado server-side en `purchase_events`.
+- Login + onboarding + discover + likes + superlikes + matches + chat.
+- Compras Play Billing con pipeline server-side (`purchase_events`).
 - Safety base: reportes y bloqueos.
-- Push token guardado para notificaciones (Firebase Messaging).
+- Push token registrado en `profiles` y Functions de push para match/mensaje.
 
 ## Setup rapido
 
@@ -20,17 +18,18 @@ Base MVP de app de citas para Android con Flutter.
    - Authentication -> Anonymous
    - Firestore Database
    - Cloud Messaging
-5. Crear coleccion `profiles` con documentos usando `sample_profiles.json` como referencia.
-6. Publicar reglas `firestore.rules`.
+5. Publicar reglas `firestore.rules`.
 
-## Cloud Functions (compra server-side)
+## Cloud Functions
 
 1. Instalar Firebase CLI y loguearte.
 2. Entrar a `functions/` e instalar deps:
    - `npm install`
-3. Para pruebas dev (sin verificacion real de Google Play):
-   - setear variable `TRUST_CLIENT_PURCHASES=true` en Functions.
-4. Deploy:
+3. Configurar variable obligatoria para verificacion Play:
+   - `ANDROID_PACKAGE_NAME` (ejemplo: `com.tuempresa.finder`)
+4. Para pruebas dev sin verificacion real:
+   - `TRUST_CLIENT_PURCHASES=true`
+5. Deploy:
    - `firebase deploy --only functions`
 
 ## Ejecutar app
