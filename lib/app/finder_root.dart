@@ -95,13 +95,14 @@ class _FinderRootState extends State<FinderRoot> {
         }
 
         return FinderHome(
-          currentUserId: _user!.id,
+          currentUser: _user!,
           discoverRepository: widget.discoverRepository,
           matchRepository: widget.matchRepository,
           chatRepository: widget.chatRepository,
           profileRepository: widget.profileRepository,
           entitlementRepository: widget.entitlementRepository,
           safetyRepository: widget.safetyRepository,
+          onLogout: widget.authRepository.signOut,
         );
       },
     );

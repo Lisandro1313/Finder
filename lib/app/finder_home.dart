@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../data/models/app_user.dart';
 import '../data/models/finder_profile.dart';
 import '../data/models/user_entitlements.dart';
 import '../data/repositories/chat_repository.dart';
@@ -19,22 +20,24 @@ import '../features/profile/profile_tab.dart';
 class FinderHome extends StatefulWidget {
   const FinderHome({
     super.key,
-    required this.currentUserId,
+    required this.currentUser,
     required this.discoverRepository,
     required this.matchRepository,
     required this.chatRepository,
     required this.profileRepository,
     required this.entitlementRepository,
     required this.safetyRepository,
+    required this.onLogout,
   });
 
-  final String currentUserId;
+  final AppUser currentUser;
   final DiscoverRepository discoverRepository;
   final MatchRepository matchRepository;
   final ChatRepository chatRepository;
   final ProfileRepository profileRepository;
   final EntitlementRepository entitlementRepository;
   final SafetyRepository safetyRepository;
+  final Future<void> Function() onLogout;
 
   @override
   State<FinderHome> createState() => _FinderHomeState();
@@ -52,7 +55,7 @@ class _FinderHomeState extends State<FinderHome> {
   void initState() {
     super.initState();
     _loadProfiles();
-    _entSub = widget.entitlementRepository.watchEntitlements(widget.currentUserId).listen((value) {
+    _entSub = widget.entitlementRepository.watchEntitlements(widget.currentUser.id).listen((value) {
       if (!mounted) return;
       setState(() {
         final previousLimit = _entitlements.dailyLikesLimit();
@@ -72,7 +75,7 @@ class _FinderHomeState extends State<FinderHome> {
   }
 
   Future<void> _loadProfiles() async {
-    final profiles = await widget.discoverRepository.fetchProfiles(currentUserId: widget.currentUserId);
+    final profiles = await widget.discoverRepository.fetchProfiles(currentUserId: widget.currentUser.id);
     if (!mounted) return;
     setState(() => _profiles = profiles);
   }
@@ -90,17 +93,19 @@ class _FinderHomeState extends State<FinderHome> {
         onSuperLike: _superLikeProfile,
         onBoostTap: _useBoost,
       ),
-      MatchesTab(currentUserId: widget.currentUserId, matchRepository: widget.matchRepository),
+      MatchesTab(currentUserId: widget.currentUser.id, matchRepository: widget.matchRepository),
       ChatsTab(
-        currentUserId: widget.currentUserId,
+        currentUserId: widget.currentUser.id,
         matchRepository: widget.matchRepository,
         chatRepository: widget.chatRepository,
       ),
-      PremiumTab(userId: widget.currentUserId, entitlementRepository: widget.entitlementRepository),
+      PremiumTab(userId: widget.currentUser.id, entitlementRepository: widget.entitlementRepository),
       ProfileTab(
-        currentUserId: widget.currentUserId,
+        currentUserId: widget.currentUser.id,
         profileRepository: widget.profileRepository,
         safetyRepository: widget.safetyRepository,
+        sessionLabel: widget.currentUser.sessionLabel,
+        onLogout: widget.onLogout,
       ),
     ];
 
@@ -127,7 +132,7 @@ class _FinderHomeState extends State<FinderHome> {
     if (_profiles.isEmpty) return;
     final profile = _profiles[_profileIndex % _profiles.length];
     final isMatch = await widget.matchRepository.sendLike(
-      fromUserId: widget.currentUserId,
+      fromUserId: widget.currentUser.id,
       toUserId: profile.id,
     );
 
@@ -154,9 +159,9 @@ class _FinderHomeState extends State<FinderHome> {
     }
 
     final profile = _profiles[_profileIndex % _profiles.length];
-    await widget.entitlementRepository.consumeSuperLike(widget.currentUserId);
+    await widget.entitlementRepository.consumeSuperLike(widget.currentUser.id);
     final isMatch = await widget.matchRepository.sendLike(
-      fromUserId: widget.currentUserId,
+      fromUserId: widget.currentUser.id,
       toUserId: profile.id,
     );
 
@@ -180,7 +185,7 @@ class _FinderHomeState extends State<FinderHome> {
       );
       return;
     }
-    await widget.entitlementRepository.consumeBoost(widget.currentUserId);
+    await widget.entitlementRepository.consumeBoost(widget.currentUser.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Boost activado por 30 minutos.')),

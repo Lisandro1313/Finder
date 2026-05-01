@@ -10,11 +10,15 @@ class ProfileTab extends StatefulWidget {
     required this.currentUserId,
     required this.profileRepository,
     required this.safetyRepository,
+    required this.sessionLabel,
+    required this.onLogout,
   });
 
   final String currentUserId;
   final ProfileRepository profileRepository;
   final SafetyRepository safetyRepository;
+  final String sessionLabel;
+  final Future<void> Function() onLogout;
 
   @override
   State<ProfileTab> createState() => _ProfileTabState();
@@ -44,6 +48,15 @@ class _ProfileTabState extends State<ProfileTab> {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const Text('Cuenta', style: TextStyle(fontWeight: FontWeight.bold)),
+            ListTile(title: const Text('Sesion'), subtitle: Text(widget.sessionLabel)),
+            ListTile(title: const Text('User ID'), subtitle: Text(widget.currentUserId)),
+            FilledButton.tonal(
+              onPressed: _logout,
+              child: const Text('Cerrar sesion'),
+            ),
+            const SizedBox(height: 20),
+            const Text('Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
             ListTile(title: const Text('Nombre'), subtitle: Text(profile.name)),
             ListTile(title: const Text('Edad'), subtitle: Text('${profile.age}')),
             ListTile(title: const Text('Bio'), subtitle: Text(profile.bio)),
@@ -72,6 +85,10 @@ class _ProfileTabState extends State<ProfileTab> {
         );
       },
     );
+  }
+
+  Future<void> _logout() async {
+    await widget.onLogout();
   }
 
   Future<void> _blockUser() async {

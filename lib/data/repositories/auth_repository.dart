@@ -21,7 +21,12 @@ class FirebaseAuthRepository implements AuthRepository {
   Stream<AppUser?> authStateChanges() {
     return _auth.authStateChanges().map((user) {
       if (user == null) return null;
-      return AppUser(id: user.uid);
+      final providerId = user.providerData.isNotEmpty ? user.providerData.first.providerId : '';
+      return AppUser(
+        id: user.uid,
+        isAnonymous: user.isAnonymous,
+        providerId: providerId,
+      );
     });
   }
 
@@ -68,7 +73,7 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<void> signIn() async {
-    _current = const AppUser(id: 'mock-user');
+    _current = const AppUser(id: 'mock-user', isAnonymous: true, providerId: '');
     _controller.add(_current);
   }
 
