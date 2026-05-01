@@ -13,6 +13,8 @@ class DiscoverTab extends StatelessWidget {
     required this.onLike,
     required this.onSuperLike,
     required this.onBoostTap,
+    required this.onReportProfile,
+    required this.onBlockProfile,
   });
 
   final List<FinderProfile> profiles;
@@ -23,6 +25,8 @@ class DiscoverTab extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback onSuperLike;
   final VoidCallback onBoostTap;
+  final VoidCallback onReportProfile;
+  final VoidCallback onBlockProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +103,26 @@ class DiscoverTab extends StatelessWidget {
             onPressed: onBoostTap,
             icon: const Icon(Icons.flash_on),
             label: const Text('Boost 30 min'),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onReportProfile,
+                  icon: const Icon(Icons.flag_outlined),
+                  label: const Text('Reportar perfil'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onBlockProfile,
+                  icon: const Icon(Icons.block),
+                  label: const Text('Bloquear perfil'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

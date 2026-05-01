@@ -92,6 +92,8 @@ class _FinderHomeState extends State<FinderHome> {
         onLike: _dailyLikesLeft > 0 ? _likeProfile : null,
         onSuperLike: _superLikeProfile,
         onBoostTap: _useBoost,
+        onReportProfile: _reportCurrentProfile,
+        onBlockProfile: _blockCurrentProfile,
       ),
       MatchesTab(currentUserId: widget.currentUser.id, matchRepository: widget.matchRepository),
       ChatsTab(
@@ -189,6 +191,34 @@ class _FinderHomeState extends State<FinderHome> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Boost activado por 30 minutos.')),
+    );
+  }
+
+  Future<void> _reportCurrentProfile() async {
+    if (_profiles.isEmpty) return;
+    final profile = _profiles[_profileIndex % _profiles.length];
+    await widget.safetyRepository.reportUser(
+      byUserId: widget.currentUser.id,
+      targetUserId: profile.id,
+      reason: 'reporte rapido desde discover',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Perfil de ${profile.name} reportado.')),
+    );
+  }
+
+  Future<void> _blockCurrentProfile() async {
+    if (_profiles.isEmpty) return;
+    final profile = _profiles[_profileIndex % _profiles.length];
+    await widget.safetyRepository.blockUser(
+      byUserId: widget.currentUser.id,
+      targetUserId: profile.id,
+    );
+    if (!mounted) return;
+    setState(() => _profileIndex++);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${profile.name} bloqueado.')),
     );
   }
 }
