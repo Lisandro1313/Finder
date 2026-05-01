@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/chat_message.dart';
 import '../../data/repositories/chat_repository.dart';
+import '../common/empty_state_panel.dart';
 import '../common/finder_atmosphere.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -44,7 +45,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 builder: (context, snapshot) {
                   final messages = snapshot.data ?? const [];
                   if (messages.isEmpty) {
-                    return const Center(child: Text('Todavia no hay mensajes.'));
+                    return const EmptyStatePanel(
+                      icon: Icons.waving_hand_outlined,
+                      title: 'Rompe el hielo',
+                      subtitle: 'Tu primer mensaje puede abrir una gran historia.',
+                    );
                   }
 
                   return ListView.builder(

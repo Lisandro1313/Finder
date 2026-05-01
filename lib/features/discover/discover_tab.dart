@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/finder_profile.dart';
 import '../../data/models/user_preferences.dart';
+import '../common/empty_state_panel.dart';
+import '../common/identity_avatar.dart';
 
 class DiscoverTab extends StatelessWidget {
   const DiscoverTab({
@@ -40,15 +42,10 @@ class DiscoverTab extends StatelessWidget {
     final theme = Theme.of(context);
 
     if (profiles.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 14),
-            Text('Buscando perfiles...', style: theme.textTheme.bodyMedium),
-          ],
-        ),
+      return const EmptyStatePanel(
+        icon: Icons.travel_explore_outlined,
+        title: 'Cargando nuevos perfiles',
+        subtitle: 'Estamos buscando gente compatible cerca tuyo.',
       );
     }
 
@@ -124,10 +121,16 @@ class DiscoverTab extends StatelessWidget {
                         ),
                       ),
                       child: const Center(
-                        child: CircleAvatar(
-                          radius: 38,
-                          backgroundColor: Colors.white24,
-                          child: Icon(Icons.person, size: 46, color: Colors.white),
+                        child: SizedBox.shrink(),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: Center(
+                        child: IdentityAvatar(
+                          seed: profile.id,
+                          label: profile.name,
+                          radius: 40,
+                          showRing: true,
                         ),
                       ),
                     ),

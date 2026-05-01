@@ -5,6 +5,8 @@ import '../../data/models/user_preferences.dart';
 import '../../data/models/user_profile.dart';
 import '../../data/repositories/profile_repository.dart';
 import '../../data/repositories/safety_repository.dart';
+import '../common/empty_state_panel.dart';
+import '../common/identity_avatar.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({
@@ -54,7 +56,11 @@ class _ProfileTabState extends State<ProfileTab> {
       builder: (context, snapshot) {
         final profile = snapshot.data;
         if (profile == null) {
-          return const Center(child: Text('Perfil no disponible.'));
+          return const EmptyStatePanel(
+            icon: Icons.person_search_outlined,
+            title: 'Tu perfil todavia no cargo',
+            subtitle: 'Reintenta en unos segundos o vuelve a iniciar sesion.',
+          );
         }
 
         return ListView(
@@ -67,6 +73,16 @@ class _ProfileTabState extends State<ProfileTab> {
                 padding: const EdgeInsets.all(10),
                 child: Column(
                   children: [
+                    ListTile(
+                      leading: IdentityAvatar(
+                        seed: widget.currentUserId,
+                        label: profile.name,
+                        radius: 22,
+                        showRing: true,
+                      ),
+                      title: Text(profile.name),
+                      subtitle: const Text('Tu presencia en Finder'),
+                    ),
                     ListTile(title: const Text('Sesion'), subtitle: Text(widget.sessionLabel)),
                     ListTile(title: const Text('User ID'), subtitle: Text(widget.currentUserId)),
                     const SizedBox(height: 6),
