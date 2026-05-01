@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 
 import '../models/user_preferences.dart';
 import '../models/user_profile.dart';
@@ -74,29 +75,36 @@ class FirestoreProfileRepository implements ProfileRepository {
 }
 
 class MockProfileRepository implements ProfileRepository {
+  MockProfileRepository() {
+    _profileController.add(_profile);
+    _preferencesController.add(_preferences);
+  }
+
   UserProfile? _profile;
   UserPreferences _preferences = UserPreferences.defaults;
+  final StreamController<UserProfile?> _profileController =
+      StreamController<UserProfile?>.broadcast();
+  final StreamController<UserPreferences> _preferencesController =
+      StreamController<UserPreferences>.broadcast();
 
   @override
   Future<void> saveProfile(UserProfile profile) async {
     _profile = profile;
+    _profileController.add(_profile);
   }
 
   @override
   Future<void> savePushToken({required String userId, required String token}) async {}
 
   @override
-  Stream<UserProfile?> watchProfile(String userId) async* {
-    yield _profile;
-  }
+  Stream<UserProfile?> watchProfile(String userId) => _profileController.stream;
 
   @override
   Future<void> savePreferences({required String userId, required UserPreferences preferences}) async {
     _preferences = preferences;
+    _preferencesController.add(_preferences);
   }
 
   @override
-  Stream<UserPreferences> watchPreferences(String userId) async* {
-    yield _preferences;
-  }
+  Stream<UserPreferences> watchPreferences(String userId) => _preferencesController.stream;
 }

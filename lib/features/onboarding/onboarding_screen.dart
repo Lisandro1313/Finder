@@ -80,7 +80,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
 
     setState(() => _saving = true);
-    await widget.onSave(name: name, age: age, bio: bio, distanceKm: distanceKm);
-    if (mounted) setState(() => _saving = false);
+    try {
+      await widget.onSave(name: name, age: age, bio: bio, distanceKm: distanceKm);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo guardar el perfil. Intenta otra vez.')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 }
