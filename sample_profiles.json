@@ -1,0 +1,25 @@
+{
+  "profiles": [
+    {
+      "id": "demo_mia",
+      "name": "Mia",
+      "age": 24,
+      "distanceKm": 2,
+      "bio": "Cafe, gym y viajes cortos."
+    },
+    {
+      "id": "demo_lucas",
+      "name": "Lucas",
+      "age": 27,
+      "distanceKm": 4,
+      "bio": "Sushi fan, perro lover, full buena onda."
+    },
+    {
+      "id": "demo_valen",
+      "name": "Valen",
+      "age": 22,
+      "distanceKm": 1,
+      "bio": "Me gusta bailar, hablar de todo y salir."
+    }
+  ]
+}

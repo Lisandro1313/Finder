@@ -1,0 +1,29 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:finder_app/data/repositories/auth_repository.dart';
+import 'package:finder_app/data/repositories/chat_repository.dart';
+import 'package:finder_app/data/repositories/discover_repository.dart';
+import 'package:finder_app/data/repositories/entitlement_repository.dart';
+import 'package:finder_app/data/repositories/match_repository.dart';
+import 'package:finder_app/data/repositories/profile_repository.dart';
+import 'package:finder_app/data/repositories/safety_repository.dart';
+import 'package:finder_app/main.dart';
+
+void main() {
+  testWidgets('Finder app renders auth flow', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      FinderApp(
+        authRepository: MockAuthRepository(),
+        profileRepository: MockProfileRepository(),
+        discoverRepository: MockDiscoverRepository(),
+        matchRepository: MockMatchRepository(),
+        chatRepository: MockChatRepository(),
+        entitlementRepository: MockEntitlementRepository(),
+        safetyRepository: MockSafetyRepository(),
+        notificationService: null,
+      ),
+    );
+
+    expect(find.text('Continuar'), findsOneWidget);
+  });
+}
