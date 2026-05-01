@@ -5,7 +5,12 @@ import '../models/user_entitlements.dart';
 
 abstract class EntitlementRepository {
   Stream<UserEntitlements> watchEntitlements(String userId);
-  Future<void> applyPurchase({required String userId, required String productId});
+  Future<void> applyPurchase({
+    required String userId,
+    required String productId,
+    String? purchaseId,
+    String? verificationData,
+  });
   Future<void> consumeBoost(String userId);
   Future<void> consumeSuperLike(String userId);
 }
@@ -28,25 +33,20 @@ class FirestoreEntitlementRepository implements EntitlementRepository {
   }
 
   @override
-  Future<void> applyPurchase({required String userId, required String productId}) async {
-    final userRef = _firestore.collection('users').doc(userId);
-    await _firestore.runTransaction((tx) async {
-      final snap = await tx.get(userRef);
-      final data = snap.data() ?? <String, dynamic>{};
-      var plusActive = data['plusActive'] as bool? ?? false;
-      var boostCount = (data['boostCount'] as num?)?.toInt() ?? 0;
-      var superLikeCount = (data['superLikeCount'] as num?)?.toInt() ?? 0;
-
-      if (productId == FinderProducts.plusSubscription) plusActive = true;
-      if (productId == FinderProducts.boostPack) boostCount += 5;
-      if (productId == FinderProducts.superLikePack) superLikeCount += 10;
-
-      tx.set(userRef, {
-        'plusActive': plusActive,
-        'boostCount': boostCount,
-        'superLikeCount': superLikeCount,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+  Future<void> applyPurchase({
+    required String userId,
+    required String productId,
+    String? purchaseId,
+    String? verificationData,
+  }) async {
+    await _firestore.collection('purchase_events').add({
+      'userId': userId,
+      'productId': productId,
+      'purchaseId': purchaseId,
+      'verificationData': verificationData,
+      'platform': 'android',
+      'status': 'created',
+      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -84,7 +84,12 @@ class MockEntitlementRepository implements EntitlementRepository {
   }
 
   @override
-  Future<void> applyPurchase({required String userId, required String productId}) async {
+  Future<void> applyPurchase({
+    required String userId,
+    required String productId,
+    String? purchaseId,
+    String? verificationData,
+  }) async {
     if (productId == FinderProducts.plusSubscription) {
       _entitlements = _entitlements.copyWith(plusActive: true);
     }

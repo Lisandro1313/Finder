@@ -12,6 +12,12 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /purchase_events/{eventId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
     match /likes/{likeId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.fromUserId == request.auth.uid;

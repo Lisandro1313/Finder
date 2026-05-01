@@ -6,8 +6,10 @@ Base MVP de app de citas para Android con Flutter.
 
 - Flujo inicial de login.
 - Autenticacion integrada por Firebase Auth (anonima para MVP).
-- Descubrir perfiles conectado a Firestore (`profiles`) con fallback local.
-- Shell de pantallas para Matches, Chats, Premium y Perfil.
+- Descubrir perfiles + likes + superlikes + matches + chat.
+- Compras Play Billing con encolado server-side en `purchase_events`.
+- Safety base: reportes y bloqueos.
+- Push token guardado para notificaciones (Firebase Messaging).
 
 ## Setup rapido
 
@@ -17,10 +19,21 @@ Base MVP de app de citas para Android con Flutter.
 4. Habilitar en Firebase:
    - Authentication -> Anonymous
    - Firestore Database
+   - Cloud Messaging
 5. Crear coleccion `profiles` con documentos usando `sample_profiles.json` como referencia.
-6. (Opcional) Publicar reglas iniciales usando `firestore.rules`.
+6. Publicar reglas `firestore.rules`.
 
-## Ejecutar
+## Cloud Functions (compra server-side)
+
+1. Instalar Firebase CLI y loguearte.
+2. Entrar a `functions/` e instalar deps:
+   - `npm install`
+3. Para pruebas dev (sin verificacion real de Google Play):
+   - setear variable `TRUST_CLIENT_PURCHASES=true` en Functions.
+4. Deploy:
+   - `firebase deploy --only functions`
+
+## Ejecutar app
 
 ```bash
 flutter pub get

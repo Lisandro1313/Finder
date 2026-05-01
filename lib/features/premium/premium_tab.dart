@@ -47,10 +47,12 @@ class _PremiumTabState extends State<PremiumTab> {
     await widget.entitlementRepository.applyPurchase(
       userId: widget.userId,
       productId: purchase.productID,
+      purchaseId: purchase.purchaseID,
+      verificationData: purchase.verificationData.serverVerificationData,
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Compra aplicada: ${purchase.productID}')),
+      const SnackBar(content: Text('Compra enviada a verificacion de servidor.')),
     );
   }
 
