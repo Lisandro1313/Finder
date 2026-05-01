@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../data/models/finder_profile.dart';
@@ -5,7 +7,7 @@ import '../../data/models/user_preferences.dart';
 import '../common/empty_state_panel.dart';
 import '../common/identity_avatar.dart';
 
-class DiscoverTab extends StatelessWidget {
+class DiscoverTab extends StatefulWidget {
   const DiscoverTab({
     super.key,
     required this.profiles,
@@ -38,10 +40,24 @@ class DiscoverTab extends StatelessWidget {
   final ValueChanged<String> onSelectQuickFilter;
 
   @override
+  State<DiscoverTab> createState() => _DiscoverTabState();
+}
+
+class _DiscoverTabState extends State<DiscoverTab> {
+  _ReactionFeedback _feedback = _ReactionFeedback.none;
+  Timer? _feedbackTimer;
+
+  @override
+  void dispose() {
+    _feedbackTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (profiles.isEmpty) {
+    if (widget.profiles.isEmpty) {
       return const EmptyStatePanel(
         icon: Icons.travel_explore_outlined,
         title: 'Cargando nuevos perfiles',
@@ -49,180 +65,289 @@ class DiscoverTab extends StatelessWidget {
       );
     }
 
-    final profile = profiles[profileIndex % profiles.length];
+    final profile = widget.profiles[widget.profileIndex % widget.profiles.length];
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Stack(
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Wrap(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _PillStat(label: 'Likes hoy', value: '${widget.dailyLikesLeft}'),
+                      _PillStat(label: 'Super Likes', value: '${widget.superLikesLeft}'),
+                      _PillStat(
+                        label: 'Filtro',
+                        value:
+                            '${widget.preferences.minAge}-${widget.preferences.maxAge} anos | ${widget.preferences.maxDistanceKm} km',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
                 spacing: 8,
-                runSpacing: 8,
+                runSpacing: 6,
                 children: [
-                  _PillStat(label: 'Likes hoy', value: '$dailyLikesLeft'),
-                  _PillStat(label: 'Super Likes', value: '$superLikesLeft'),
-                  _PillStat(
-                    label: 'Filtro',
-                    value:
-                        '${preferences.minAge}-${preferences.maxAge} anos | ${preferences.maxDistanceKm} km',
+                  _FilterChip(
+                    label: 'Todos',
+                    selected: widget.quickFilterKey == 'all',
+                    onTap: () => widget.onSelectQuickFilter('all'),
+                  ),
+                  _FilterChip(
+                    label: 'Cerca',
+                    selected: widget.quickFilterKey == 'nearby',
+                    onTap: () => widget.onSelectQuickFilter('nearby'),
+                  ),
+                  _FilterChip(
+                    label: '18-25',
+                    selected: widget.quickFilterKey == '18_25',
+                    onTap: () => widget.onSelectQuickFilter('18_25'),
+                  ),
+                  _FilterChip(
+                    label: '25-35',
+                    selected: widget.quickFilterKey == '25_35',
+                    onTap: () => widget.onSelectQuickFilter('25_35'),
                   ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              _FilterChip(
-                label: 'Todos',
-                selected: quickFilterKey == 'all',
-                onTap: () => onSelectQuickFilter('all'),
-              ),
-              _FilterChip(
-                label: 'Cerca',
-                selected: quickFilterKey == 'nearby',
-                onTap: () => onSelectQuickFilter('nearby'),
-              ),
-              _FilterChip(
-                label: '18-25',
-                selected: quickFilterKey == '18_25',
-                onTap: () => onSelectQuickFilter('18_25'),
-              ),
-              _FilterChip(
-                label: '25-35',
-                selected: quickFilterKey == '25_35',
-                onTap: () => onSelectQuickFilter('25_35'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 260),
-              child: Card(
-                key: ValueKey(profile.id),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 130,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFFE11D48), Color(0xFFFF8A65)],
+              const SizedBox(height: 12),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 260),
+                  child: Card(
+                    key: ValueKey(profile.id),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 130,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [Color(0xFFE11D48), Color(0xFFFF8A65)],
+                                  ),
+                                ),
+                              ),
+                              Center(
+                                child: IdentityAvatar(
+                                  seed: profile.id,
+                                  label: profile.name,
+                                  radius: 40,
+                                  showRing: true,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: const Center(
-                        child: SizedBox.shrink(),
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: Center(
-                        child: IdentityAvatar(
-                          seed: profile.id,
-                          label: profile.name,
-                          radius: 40,
-                          showRing: true,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${profile.name}, ${profile.age}', style: theme.textTheme.headlineSmall),
-                            const SizedBox(height: 6),
-                            Text('A ${profile.distanceKm} km', style: theme.textTheme.titleMedium),
-                            const SizedBox(height: 12),
-                            Text(profile.bio, style: theme.textTheme.bodyLarge),
-                            const Spacer(),
-                            Text(
-                              'Manten el ritmo: cuanto mas interactuas, mejores matches aparecen.',
-                              style: theme.textTheme.bodyMedium,
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('${profile.name}, ${profile.age}', style: theme.textTheme.headlineSmall),
+                                const SizedBox(height: 6),
+                                Text('A ${profile.distanceKm} km', style: theme.textTheme.titleMedium),
+                                const SizedBox(height: 12),
+                                Text(profile.bio, style: theme.textTheme.bodyLarge),
+                                const Spacer(),
+                                Text(
+                                  'Manten el ritmo: cuanto mas interactuas, mejores matches aparecen.',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _handlePass,
+                      icon: const Icon(Icons.close_rounded),
+                      label: const Text('Pasar'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: widget.onLike == null ? null : _handleLike,
+                      icon: const Icon(Icons.favorite_rounded),
+                      label: const Text('Like'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: _handleSuperLike,
+                      icon: const Icon(Icons.stars),
+                      label: const Text('Super Like'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: _handleBoost,
+                      icon: const Icon(Icons.flash_on),
+                      label: const Text('Boost 30 min'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onReportProfile,
+                      icon: const Icon(Icons.flag_outlined),
+                      label: const Text('Reportar'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onBlockProfile,
+                      icon: const Icon(Icons.block),
+                      label: const Text('Bloquear'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          IgnorePointer(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              opacity: _feedback == _ReactionFeedback.none ? 0 : 1,
+              child: Center(
+                child: _ReactionBadge(feedback: _feedback),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onPass,
-                  icon: const Icon(Icons.close_rounded),
-                  label: const Text('Pasar'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onLike,
-                  icon: const Icon(Icons.favorite_rounded),
-                  label: const Text('Like'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.tonalIcon(
-                  onPressed: onSuperLike,
-                  icon: const Icon(Icons.stars),
-                  label: const Text('Super Like'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.tonalIcon(
-                  onPressed: onBoostTap,
-                  icon: const Icon(Icons.flash_on),
-                  label: const Text('Boost 30 min'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onReportProfile,
-                  icon: const Icon(Icons.flag_outlined),
-                  label: const Text('Reportar'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onBlockProfile,
-                  icon: const Icon(Icons.block),
-                  label: const Text('Bloquear'),
-                ),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
+
+  void _handlePass() {
+    _emitFeedback(_ReactionFeedback.pass);
+    widget.onPass();
+  }
+
+  void _handleLike() {
+    _emitFeedback(_ReactionFeedback.like);
+    widget.onLike?.call();
+  }
+
+  void _handleSuperLike() {
+    _emitFeedback(_ReactionFeedback.superLike);
+    widget.onSuperLike();
+  }
+
+  void _handleBoost() {
+    _emitFeedback(_ReactionFeedback.boost);
+    widget.onBoostTap();
+  }
+
+  void _emitFeedback(_ReactionFeedback feedback) {
+    _feedbackTimer?.cancel();
+    setState(() => _feedback = feedback);
+    _feedbackTimer = Timer(const Duration(milliseconds: 520), () {
+      if (!mounted) return;
+      setState(() => _feedback = _ReactionFeedback.none);
+    });
+  }
+}
+
+enum _ReactionFeedback { none, pass, like, superLike, boost }
+
+class _ReactionBadge extends StatelessWidget {
+  const _ReactionBadge({required this.feedback});
+
+  final _ReactionFeedback feedback;
+
+  @override
+  Widget build(BuildContext context) {
+    final visual = _visualForFeedback(feedback);
+
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 260),
+      tween: Tween<double>(begin: 0.7, end: 1),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.scale(scale: value, child: child);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.56),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(visual.icon, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              visual.label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _FeedbackVisual _visualForFeedback(_ReactionFeedback value) {
+    switch (value) {
+      case _ReactionFeedback.pass:
+        return const _FeedbackVisual(icon: Icons.close_rounded, label: 'Pasaste');
+      case _ReactionFeedback.like:
+        return const _FeedbackVisual(icon: Icons.favorite_rounded, label: 'Like');
+      case _ReactionFeedback.superLike:
+        return const _FeedbackVisual(icon: Icons.stars_rounded, label: 'Super Like');
+      case _ReactionFeedback.boost:
+        return const _FeedbackVisual(icon: Icons.flash_on, label: 'Boost');
+      case _ReactionFeedback.none:
+        return const _FeedbackVisual(icon: Icons.favorite_border, label: '');
+    }
+  }
+}
+
+class _FeedbackVisual {
+  const _FeedbackVisual({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
 }
 
 class _PillStat extends StatelessWidget {

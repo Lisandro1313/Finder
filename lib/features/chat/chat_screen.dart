@@ -25,6 +25,14 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
+  static const _quickReactions = [
+    '\u{1F525}',
+    '\u{1F60D}',
+    '\u{1F602}',
+    '\u{1F440}',
+    '\u{2728}',
+    '\u{1F64C}',
+  ];
 
   @override
   void dispose() {
@@ -83,26 +91,54 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          decoration: const InputDecoration(
-                            hintText: 'Escribe mensaje...',
-                            border: InputBorder.none,
-                            filled: false,
-                          ),
+                      SizedBox(
+                        height: 34,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _quickReactions.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final emoji = _quickReactions[index];
+                            return InkWell(
+                              onTap: () => _sendQuickReaction(emoji),
+                              borderRadius: BorderRadius.circular(999),
+                              child: Ink(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F0FA),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(emoji, style: const TextStyle(fontSize: 16)),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      FilledButton.tonal(
-                        onPressed: _send,
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        ),
-                        child: const Icon(Icons.send_rounded),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _controller,
+                              decoration: const InputDecoration(
+                                hintText: 'Escribe mensaje...',
+                                border: InputBorder.none,
+                                filled: false,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton.tonal(
+                            onPressed: _send,
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            ),
+                            child: const Icon(Icons.send_rounded),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -112,6 +148,14 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _sendQuickReaction(String emoji) async {
+    await widget.chatRepository.sendMessage(
+      matchId: widget.matchId,
+      senderId: widget.currentUserId,
+      text: emoji,
     );
   }
 
@@ -125,3 +169,4 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
+
