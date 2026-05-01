@@ -51,6 +51,7 @@ class _FinderHomeState extends State<FinderHome> {
   List<FinderProfile> _profiles = const [];
   UserEntitlements _entitlements = UserEntitlements.empty;
   UserPreferences _preferences = UserPreferences.defaults;
+  String _quickFilterKey = 'all';
   StreamSubscription<UserEntitlements>? _entSub;
   StreamSubscription<UserPreferences>? _prefSub;
 
@@ -111,6 +112,9 @@ class _FinderHomeState extends State<FinderHome> {
         onBoostTap: _useBoost,
         onReportProfile: _reportCurrentProfile,
         onBlockProfile: _blockCurrentProfile,
+        preferences: _preferences,
+        quickFilterKey: _quickFilterKey,
+        onSelectQuickFilter: _applyQuickFilter,
       ),
       MatchesTab(currentUserId: widget.currentUser.id, matchRepository: widget.matchRepository),
       ChatsTab(
@@ -237,5 +241,29 @@ class _FinderHomeState extends State<FinderHome> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${profile.name} bloqueado.')),
     );
+  }
+
+  Future<void> _applyQuickFilter(String key) async {
+    UserPreferences next = _preferences;
+    if (key == 'all') {
+      next = UserPreferences.defaults;
+    } else if (key == 'nearby') {
+      next = const UserPreferences(minAge: 18, maxAge: 40, maxDistanceKm: 5);
+    } else if (key == '18_25') {
+      next = const UserPreferences(minAge: 18, maxAge: 25, maxDistanceKm: 30);
+    } else if (key == '25_35') {
+      next = const UserPreferences(minAge: 25, maxAge: 35, maxDistanceKm: 30);
+    }
+
+    setState(() {
+      _quickFilterKey = key;
+      _preferences = next;
+    });
+
+    await widget.profileRepository.savePreferences(
+      userId: widget.currentUser.id,
+      preferences: next,
+    );
+    await _loadProfiles();
   }
 }

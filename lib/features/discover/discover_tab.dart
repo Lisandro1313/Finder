@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/finder_profile.dart';
+import '../../data/models/user_preferences.dart';
 
 class DiscoverTab extends StatelessWidget {
   const DiscoverTab({
@@ -15,6 +16,9 @@ class DiscoverTab extends StatelessWidget {
     required this.onBoostTap,
     required this.onReportProfile,
     required this.onBlockProfile,
+    required this.preferences,
+    required this.quickFilterKey,
+    required this.onSelectQuickFilter,
   });
 
   final List<FinderProfile> profiles;
@@ -27,6 +31,9 @@ class DiscoverTab extends StatelessWidget {
   final VoidCallback onBoostTap;
   final VoidCallback onReportProfile;
   final VoidCallback onBlockProfile;
+  final UserPreferences preferences;
+  final String quickFilterKey;
+  final ValueChanged<String> onSelectQuickFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +52,37 @@ class DiscoverTab extends StatelessWidget {
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Text('Likes: $dailyLikesLeft | Super Likes: $superLikesLeft'),
+              child: Text(
+                'Likes: $dailyLikesLeft | Super Likes: $superLikesLeft\n'
+                'Filtro: ${preferences.minAge}-${preferences.maxAge} anos, hasta ${preferences.maxDistanceKm} km',
+              ),
             ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('Todos'),
+                selected: quickFilterKey == 'all',
+                onSelected: (_) => onSelectQuickFilter('all'),
+              ),
+              ChoiceChip(
+                label: const Text('Cerca'),
+                selected: quickFilterKey == 'nearby',
+                onSelected: (_) => onSelectQuickFilter('nearby'),
+              ),
+              ChoiceChip(
+                label: const Text('18-25'),
+                selected: quickFilterKey == '18_25',
+                onSelected: (_) => onSelectQuickFilter('18_25'),
+              ),
+              ChoiceChip(
+                label: const Text('25-35'),
+                selected: quickFilterKey == '25_35',
+                onSelected: (_) => onSelectQuickFilter('25_35'),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Expanded(
