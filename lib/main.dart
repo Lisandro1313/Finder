@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -19,28 +20,32 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseBootstrap.ensureInitialized();
 
-  final authRepository = FirebaseBootstrap.isAvailable
+  const forceMockBackend = bool.fromEnvironment('FINDER_FORCE_MOCK', defaultValue: false);
+  const useMockBackend = forceMockBackend || (kIsWeb && kDebugMode);
+  final useFirebaseBackend = FirebaseBootstrap.isAvailable && !useMockBackend;
+
+  final authRepository = useFirebaseBackend
       ? FirebaseAuthRepository(FirebaseAuth.instance, GoogleSignIn())
       : MockAuthRepository();
-  final profileRepository = FirebaseBootstrap.isAvailable
+  final profileRepository = useFirebaseBackend
       ? FirestoreProfileRepository(FirebaseFirestore.instance)
       : MockProfileRepository();
-  final discoverRepository = FirebaseBootstrap.isAvailable
+  final discoverRepository = useFirebaseBackend
       ? FirestoreDiscoverRepository(FirebaseFirestore.instance)
       : MockDiscoverRepository();
-  final safetyRepository = FirebaseBootstrap.isAvailable
+  final safetyRepository = useFirebaseBackend
       ? FirestoreSafetyRepository(FirebaseFirestore.instance)
       : MockSafetyRepository();
-  final matchRepository = FirebaseBootstrap.isAvailable
+  final matchRepository = useFirebaseBackend
       ? FirestoreMatchRepository(FirebaseFirestore.instance, safetyRepository)
       : MockMatchRepository();
-  final chatRepository = FirebaseBootstrap.isAvailable
+  final chatRepository = useFirebaseBackend
       ? FirestoreChatRepository(FirebaseFirestore.instance)
       : MockChatRepository();
-  final entitlementRepository = FirebaseBootstrap.isAvailable
+  final entitlementRepository = useFirebaseBackend
       ? FirestoreEntitlementRepository(FirebaseFirestore.instance)
       : MockEntitlementRepository();
-  final notificationService = FirebaseBootstrap.isAvailable
+  final notificationService = useFirebaseBackend
       ? NotificationService(FirebaseMessaging.instance, profileRepository)
       : null;
 

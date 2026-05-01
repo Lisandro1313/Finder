@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class SignInScreen extends StatelessWidget {
   const SignInScreen({
     super.key,
-    required this.onContinue,
+    required this.onContinueWithGoogle,
+    required this.onContinueAsGuest,
     required this.isLoading,
   });
 
-  final Future<void> Function() onContinue;
+  final Future<void> Function() onContinueWithGoogle;
+  final Future<void> Function() onContinueAsGuest;
   final bool isLoading;
 
   @override
@@ -28,7 +30,7 @@ class SignInScreen extends StatelessWidget {
               ),
               const Spacer(),
               FilledButton(
-                onPressed: isLoading ? null : onContinue,
+                onPressed: isLoading ? null : onContinueWithGoogle,
                 child: isLoading
                     ? const SizedBox(
                         height: 20,
@@ -38,8 +40,13 @@ class SignInScreen extends StatelessWidget {
                     : const Text('Continuar con Google'),
               ),
               const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: isLoading ? null : onContinueAsGuest,
+                child: const Text('Entrar como invitado'),
+              ),
+              const SizedBox(height: 12),
               const Text(
-                'Siguiente paso: Google Sign-In activo. Si falla, entra en modo anonimo para testing.',
+                'Tip: si Google falla en local, usa invitado para seguir testeando.',
                 textAlign: TextAlign.center,
               ),
             ],

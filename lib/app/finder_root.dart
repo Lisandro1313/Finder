@@ -68,7 +68,11 @@ class _FinderRootState extends State<FinderRoot> {
   @override
   Widget build(BuildContext context) {
     if (_user == null) {
-      return SignInScreen(isLoading: _isSigningIn, onContinue: _handleSignIn);
+      return SignInScreen(
+        isLoading: _isSigningIn,
+        onContinueWithGoogle: _handleGoogleSignIn,
+        onContinueAsGuest: _handleGuestSignIn,
+      );
     }
 
     return StreamBuilder<UserProfile?>(
@@ -108,7 +112,7 @@ class _FinderRootState extends State<FinderRoot> {
     );
   }
 
-  Future<void> _handleSignIn() async {
+  Future<void> _handleGoogleSignIn() async {
     setState(() => _isSigningIn = true);
     try {
       await widget.authRepository.signIn();
@@ -116,6 +120,22 @@ class _FinderRootState extends State<FinderRoot> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No pudimos iniciar sesion. Reintenta.')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSigningIn = false);
+    }
+  }
+
+  Future<void> _handleGuestSignIn() async {
+    setState(() => _isSigningIn = true);
+    try {
+      await widget.authRepository.signInAnonymously();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No pudimos entrar como invitado. Revisa Firebase Auth.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSigningIn = false);

@@ -8,6 +8,7 @@ import '../models/app_user.dart';
 abstract class AuthRepository {
   Stream<AppUser?> authStateChanges();
   Future<void> signIn();
+  Future<void> signInAnonymously();
   Future<void> signOut();
 }
 
@@ -33,9 +34,9 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signIn() async {
     try {
-      final googleUser = await _googleSignIn.signIn();
+      final googleUser = await _googleSignIn.signIn().timeout(const Duration(seconds: 12));
       if (googleUser == null) {
-        await _auth.signInAnonymously();
+        await signInAnonymously();
         return;
       }
 
@@ -46,8 +47,13 @@ class FirebaseAuthRepository implements AuthRepository {
       );
       await _auth.signInWithCredential(credential);
     } catch (_) {
-      await _auth.signInAnonymously();
+      await signInAnonymously();
     }
+  }
+
+  @override
+  Future<void> signInAnonymously() async {
+    await _auth.signInAnonymously();
   }
 
   @override
@@ -73,6 +79,12 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<void> signIn() async {
+    _current = const AppUser(id: 'mock-user', isAnonymous: true, providerId: '');
+    _controller.add(_current);
+  }
+
+  @override
+  Future<void> signInAnonymously() async {
     _current = const AppUser(id: 'mock-user', isAnonymous: true, providerId: '');
     _controller.add(_current);
   }
