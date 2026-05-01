@@ -3,6 +3,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../../billing/billing_service.dart';
 import '../../billing/finder_products.dart';
+import '../../data/models/purchase_event_item.dart';
 import '../../data/models/user_entitlements.dart';
 import '../../data/repositories/entitlement_repository.dart';
 
@@ -104,6 +105,33 @@ class _PremiumTabState extends State<PremiumTab> {
             OutlinedButton(
               onPressed: _billingService.restorePurchases,
               child: const Text('Restaurar compras'),
+            ),
+            const SizedBox(height: 16),
+            const Text('Estado de compras', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            StreamBuilder<List<PurchaseEventItem>>(
+              stream: widget.entitlementRepository.watchPurchaseEvents(widget.userId),
+              builder: (context, eventSnapshot) {
+                final events = eventSnapshot.data ?? const [];
+                if (events.isEmpty) {
+                  return const Text('Sin eventos de compra recientes.');
+                }
+
+                return Column(
+                  children: events.map((event) {
+                    return ListTile(
+                      dense: true,
+                      leading: const Icon(Icons.receipt_long_outlined),
+                      title: Text(event.productId),
+                      subtitle: Text(
+                        event.reason == null
+                            ? 'Estado: ${event.status}'
+                            : 'Estado: ${event.status} | Motivo: ${event.reason}',
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ],
         );

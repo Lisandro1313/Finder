@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../billing/finder_products.dart';
+import '../models/purchase_event_item.dart';
 import '../models/user_entitlements.dart';
 
 abstract class EntitlementRepository {
   Stream<UserEntitlements> watchEntitlements(String userId);
+  Stream<List<PurchaseEventItem>> watchPurchaseEvents(String userId);
   Future<void> applyPurchase({
     required String userId,
     required String productId,
@@ -29,6 +31,28 @@ class FirestoreEntitlementRepository implements EntitlementRepository {
         boostCount: (data['boostCount'] as num?)?.toInt() ?? 0,
         superLikeCount: (data['superLikeCount'] as num?)?.toInt() ?? 0,
       );
+    });
+  }
+
+  @override
+  Stream<List<PurchaseEventItem>> watchPurchaseEvents(String userId) {
+    return _firestore
+        .collection('purchase_events')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .limit(10)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map(
+            (doc) => PurchaseEventItem(
+              id: doc.id,
+              productId: doc.data()['productId'] as String? ?? '',
+              status: doc.data()['status'] as String? ?? 'unknown',
+              reason: doc.data()['reason'] as String?,
+            ),
+          )
+          .toList();
     });
   }
 
@@ -81,6 +105,11 @@ class MockEntitlementRepository implements EntitlementRepository {
   @override
   Stream<UserEntitlements> watchEntitlements(String userId) async* {
     yield _entitlements;
+  }
+
+  @override
+  Stream<List<PurchaseEventItem>> watchPurchaseEvents(String userId) async* {
+    yield const [];
   }
 
   @override
