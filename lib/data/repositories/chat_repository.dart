@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/chat_message.dart';
+import 'mock_runtime_store.dart';
 
 abstract class ChatRepository {
   Stream<List<ChatMessage>> watchMessages(String matchId);
@@ -27,6 +28,7 @@ class FirestoreChatRepository implements ChatRepository {
 
     await _firestore.collection('matches').doc(matchId).set({
       'lastMessage': trimmed,
+      'lastSenderId': senderId,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
@@ -65,10 +67,15 @@ class MockChatRepository implements ChatRepository {
     required String matchId,
     required String senderId,
     required String text,
-  }) async {}
+  }) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+    MockRuntimeStore.appendMessage(matchId: matchId, senderId: senderId, text: trimmed);
+  }
 
   @override
-  Stream<List<ChatMessage>> watchMessages(String matchId) async* {
-    yield const [];
+  Stream<List<ChatMessage>> watchMessages(String matchId) {
+    MockRuntimeStore.ensureSeedData();
+    return MockRuntimeStore.watchMessages(matchId);
   }
 }

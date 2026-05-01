@@ -47,6 +47,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return StreamBuilder<UserProfile?>(
       stream: widget.profileRepository.watchProfile(widget.currentUserId),
       builder: (context, snapshot) {
@@ -58,38 +60,67 @@ class _ProfileTabState extends State<ProfileTab> {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text('Cuenta', style: TextStyle(fontWeight: FontWeight.bold)),
-            ListTile(title: const Text('Sesion'), subtitle: Text(widget.sessionLabel)),
-            ListTile(title: const Text('User ID'), subtitle: Text(widget.currentUserId)),
-            FilledButton.tonal(onPressed: _logout, child: const Text('Cerrar sesion')),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _confirmResetFeed,
-              icon: const Icon(Icons.restart_alt),
-              label: const Text('Reset feed'),
+            Text('Tu cuenta', style: theme.textTheme.headlineSmall),
+            const SizedBox(height: 10),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    ListTile(title: const Text('Sesion'), subtitle: Text(widget.sessionLabel)),
+                    ListTile(title: const Text('User ID'), subtitle: Text(widget.currentUserId)),
+                    const SizedBox(height: 6),
+                    FilledButton.tonal(onPressed: _logout, child: const Text('Cerrar sesion')),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: _confirmResetFeed,
+                      icon: const Icon(Icons.restart_alt),
+                      label: const Text('Resetear feed'),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 20),
-            const Text('Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
-            ListTile(title: const Text('Nombre'), subtitle: Text(profile.name)),
-            ListTile(title: const Text('Edad'), subtitle: Text('${profile.age}')),
-            ListTile(title: const Text('Bio'), subtitle: Text(profile.bio)),
-            ListTile(title: const Text('Distancia max'), subtitle: Text('${profile.distanceKm} km')),
+            Text('Perfil', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 10),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(title: const Text('Nombre'), subtitle: Text(profile.name)),
+                  ListTile(title: const Text('Edad'), subtitle: Text('${profile.age}')),
+                  ListTile(title: const Text('Bio'), subtitle: Text(profile.bio)),
+                  ListTile(title: const Text('Distancia max'), subtitle: Text('${profile.distanceKm} km')),
+                ],
+              ),
+            ),
             const SizedBox(height: 20),
             _buildPreferencesEditor(),
             const SizedBox(height: 20),
-            const Text('Seguridad', style: TextStyle(fontWeight: FontWeight.bold)),
-            TextField(
-              controller: _targetController,
-              decoration: const InputDecoration(labelText: 'ID de usuario a bloquear/reportar'),
+            Text('Seguridad', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 10),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _targetController,
+                      decoration: const InputDecoration(labelText: 'ID de usuario a bloquear/reportar'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _reasonController,
+                      decoration: const InputDecoration(labelText: 'Motivo de reporte'),
+                    ),
+                    const SizedBox(height: 10),
+                    FilledButton(onPressed: _blockUser, child: const Text('Bloquear usuario')),
+                    const SizedBox(height: 8),
+                    OutlinedButton(onPressed: _reportUser, child: const Text('Reportar usuario')),
+                  ],
+                ),
+              ),
             ),
-            TextField(
-              controller: _reasonController,
-              decoration: const InputDecoration(labelText: 'Motivo de reporte'),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(onPressed: _blockUser, child: const Text('Bloquear usuario')),
-            const SizedBox(height: 8),
-            OutlinedButton(onPressed: _reportUser, child: const Text('Reportar usuario')),
             const SizedBox(height: 20),
             _buildAdminPanel(),
           ],
@@ -103,20 +134,28 @@ class _ProfileTabState extends State<ProfileTab> {
       stream: widget.profileRepository.watchPreferences(widget.currentUserId),
       builder: (context, snapshot) {
         final prefs = snapshot.data ?? UserPreferences.defaults;
-        _minAgeController.text = prefs.minAge.toString();
-        _maxAgeController.text = prefs.maxAge.toString();
-        _maxDistanceController.text = prefs.maxDistanceKm.toString();
+        _syncController(_minAgeController, prefs.minAge.toString());
+        _syncController(_maxAgeController, prefs.maxAge.toString());
+        _syncController(_maxDistanceController, prefs.maxDistanceKm.toString());
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Preferencias de busqueda', style: TextStyle(fontWeight: FontWeight.bold)),
-            TextField(controller: _minAgeController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Edad minima')),
-            TextField(controller: _maxAgeController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Edad maxima')),
-            TextField(controller: _maxDistanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Distancia maxima (km)')),
-            const SizedBox(height: 8),
-            FilledButton.tonal(onPressed: _savePreferences, child: const Text('Guardar preferencias')),
-          ],
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Preferencias de busqueda', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                TextField(controller: _minAgeController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Edad minima')),
+                const SizedBox(height: 10),
+                TextField(controller: _maxAgeController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Edad maxima')),
+                const SizedBox(height: 10),
+                TextField(controller: _maxDistanceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Distancia maxima (km)')),
+                const SizedBox(height: 10),
+                FilledButton.tonal(onPressed: _savePreferences, child: const Text('Guardar preferencias')),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -239,5 +278,13 @@ class _ProfileTabState extends State<ProfileTab> {
     await widget.safetyRepository.markReportReviewed(reportId, widget.currentUserId);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reporte marcado como revisado.')));
+  }
+
+  void _syncController(TextEditingController controller, String nextValue) {
+    if (controller.text == nextValue) return;
+    controller.value = controller.value.copyWith(
+      text: nextValue,
+      selection: TextSelection.collapsed(offset: nextValue.length),
+    );
   }
 }

@@ -4,6 +4,7 @@ import '../../data/models/match_item.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/match_repository.dart';
 import '../chat/chat_screen.dart';
+import '../common/time_ago.dart';
 
 class ChatsTab extends StatelessWidget {
   const ChatsTab({
@@ -19,22 +20,41 @@ class ChatsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return StreamBuilder<List<MatchItem>>(
       stream: matchRepository.watchMatches(currentUserId),
       builder: (context, snapshot) {
         final matches = snapshot.data ?? const [];
         if (matches.isEmpty) {
-          return const Center(child: Text('Aun no tienes chats activos.'));
+          return Center(
+            child: Text(
+              'Aun no tienes chats activos.',
+              style: theme.textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+          );
         }
 
         return ListView.builder(
+          padding: const EdgeInsets.all(16),
           itemCount: matches.length,
           itemBuilder: (context, index) {
             final match = matches[index];
+            final otherId = match.otherUser(currentUserId);
+            final timeAgo = formatTimeAgo(match.updatedAt);
+            final sentByMe = match.lastSenderId == currentUserId;
+
             return ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               leading: const CircleAvatar(child: Icon(Icons.chat_bubble_outline)),
-              title: Text('Chat con ${match.otherUser(currentUserId)}'),
-              subtitle: Text(match.lastMessage),
+              title: Text(otherId),
+              subtitle: Text(
+                '${sentByMe ? 'Tu: ' : ''}${match.lastMessage}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Text(timeAgo, style: theme.textTheme.bodySmall),
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -42,6 +62,7 @@ class ChatsTab extends StatelessWidget {
                       matchId: match.id,
                       currentUserId: currentUserId,
                       chatRepository: chatRepository,
+                      chatTitle: otherId,
                     ),
                   ),
                 );

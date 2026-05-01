@@ -9,11 +9,13 @@ class ChatScreen extends StatefulWidget {
     required this.matchId,
     required this.currentUserId,
     required this.chatRepository,
+    this.chatTitle,
   });
 
   final String matchId;
   final String currentUserId;
   final ChatRepository chatRepository;
+  final String? chatTitle;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -31,7 +33,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(title: Text(widget.chatTitle ?? 'Chat')),
       body: Column(
         children: [
           Expanded(
@@ -44,6 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
 
                 return ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
@@ -51,11 +54,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     return Align(
                       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        padding: const EdgeInsets.all(10),
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         decoration: BoxDecoration(
-                          color: mine ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.surfaceVariant,
-                          borderRadius: BorderRadius.circular(12),
+                          color: mine
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : const Color(0xFFF3F0FA),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: Text(message.text),
                       ),

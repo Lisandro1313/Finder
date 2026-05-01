@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/match_item.dart';
+import 'mock_runtime_store.dart';
 import 'safety_repository.dart';
 
 abstract class MatchRepository {
@@ -62,6 +63,8 @@ class FirestoreMatchRepository implements MatchRepository {
           userA: userA,
           userB: userB,
           lastMessage: data['lastMessage'] as String? ?? 'Nuevo match',
+          updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+          lastSenderId: data['lastSenderId'] as String?,
         );
       }).toList();
     });
@@ -69,13 +72,30 @@ class FirestoreMatchRepository implements MatchRepository {
 }
 
 class MockMatchRepository implements MatchRepository {
-  @override
-  Future<bool> sendLike({required String fromUserId, required String toUserId}) async {
-    return false;
+  MockMatchRepository() {
+    MockRuntimeStore.ensureSeedData();
   }
 
   @override
-  Stream<List<MatchItem>> watchMatches(String userId) async* {
-    yield const [];
+  Future<bool> sendLike({required String fromUserId, required String toUserId}) async {
+    final users = [fromUserId, toUserId]..sort();
+    final matchId = 'mock_${users[0]}_${users[1]}';
+    final match = MatchItem(
+      id: matchId,
+      userA: users[0],
+      userB: users[1],
+      lastMessage: 'Se hizo match. Rompe el hielo!',
+      updatedAt: DateTime.now(),
+      lastSenderId: fromUserId,
+    );
+    MockRuntimeStore.upsertMatch(match);
+    return true;
+  }
+
+  @override
+  Stream<List<MatchItem>> watchMatches(String userId) {
+    return MockRuntimeStore.watchMatches().map(
+      (matches) => matches.where((m) => m.userA == userId || m.userB == userId).toList(),
+    );
   }
 }
