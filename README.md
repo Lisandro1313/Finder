@@ -22,7 +22,8 @@ Base MVP de app de citas para Android con Flutter.
    - Authentication -> Google + Anonymous
    - Firestore Database
    - Cloud Messaging
-6. Publicar reglas `firestore.rules`.
+6. Publicar reglas e indices:
+   - `firebase deploy --only firestore`
 
 ## Activar admin para moderacion
 
@@ -46,17 +47,21 @@ Con eso se habilita el panel "Moderacion (Admin)" en Perfil.
 En release, la app exige `verificationData` para crear `purchase_events`.
 Si falta, rechaza la operacion localmente para evitar compras sin verificacion.
 
-## QA checklist (Android fisico)
+## Preflight de release
 
-1. Login con Google funciona.
-2. Si Google falla, entra anónimo y permite continuar.
-3. Crear perfil y verlo en `profiles/{uid}`.
-4. Dar likes y generar match reciproco.
-5. Enviar mensaje y recibir push en otro dispositivo.
-6. Comprar producto test en Play y verificar `purchase_events` -> `status: applied`.
-7. Verificar aumento de entitlements (`plusActive`, `boostCount`, `superLikeCount`).
-8. Bloquear/reportar usuario y confirmar que bloqueados no matchean.
-9. Como admin, revisar reportes en Perfil y marcarlos revisados.
+Checklist completo: `RELEASE_CHECKLIST.md`
+
+Chequeo automatico local:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/preflight.ps1
+```
+
+Build AAB automatizado:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/release_build.ps1
+```
 
 ## Ejecutar app
 
@@ -68,13 +73,3 @@ flutter run
 ## Nota
 
 Si Firebase no esta configurado aun, la app entra en modo mock automaticamente.
-
-## Preflight de release
-
-Checklist completo: `RELEASE_CHECKLIST.md`
-
-Chequeo automatico local:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/preflight.ps1
-```

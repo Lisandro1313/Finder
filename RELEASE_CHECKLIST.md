@@ -7,7 +7,7 @@
 - [ ] Firebase Auth: Google + Anonymous enabled
 - [ ] Firestore database enabled
 - [ ] Cloud Messaging enabled
-- [ ] Firestore rules deployed (`firestore.rules`)
+- [ ] Firestore rules and indexes deployed (`firebase deploy --only firestore`)
 
 ## 2) Functions setup
 
@@ -42,15 +42,21 @@
 
 ## 6) Build and upload
 
-- [ ] Build AAB
-- [ ] Upload to Play Console closed testing
+- [ ] Run release build script (`scripts/release_build.ps1`)
+- [ ] Upload generated AAB to Play Console closed testing
 - [ ] Add testers
 - [ ] Validate crash-free startup and core flows
 
-## Helper
+## Helpers
 
-Run local preflight:
+Preflight:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/preflight.ps1
+```
+
+Release build:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/release_build.ps1
 ```
