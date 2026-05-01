@@ -35,11 +35,11 @@ class SignInScreen extends StatelessWidget {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Continuar'),
+                    : const Text('Continuar con Google'),
               ),
               const SizedBox(height: 12),
               const Text(
-                'Siguiente paso: Google Sign-In / telefono con Firebase Auth.',
+                'Siguiente paso: Google Sign-In activo. Si falla, entra en modo anonimo para testing.',
                 textAlign: TextAlign.center,
               ),
             ],

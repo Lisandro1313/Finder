@@ -24,6 +24,6 @@ void main() {
       ),
     );
 
-    expect(find.text('Continuar'), findsOneWidget);
+    expect(find.text('Continuar con Google'), findsOneWidget);
   });
 }

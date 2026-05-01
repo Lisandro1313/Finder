@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'app/firebase_bootstrap.dart';
 import 'app/finder_root.dart';
@@ -19,7 +20,7 @@ Future<void> main() async {
   await FirebaseBootstrap.ensureInitialized();
 
   final authRepository = FirebaseBootstrap.isAvailable
-      ? FirebaseAuthRepository(FirebaseAuth.instance)
+      ? FirebaseAuthRepository(FirebaseAuth.instance, GoogleSignIn())
       : MockAuthRepository();
   final profileRepository = FirebaseBootstrap.isAvailable
       ? FirestoreProfileRepository(FirebaseFirestore.instance)

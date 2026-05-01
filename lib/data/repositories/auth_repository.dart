@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/app_user.dart';
 
@@ -11,9 +12,10 @@ abstract class AuthRepository {
 }
 
 class FirebaseAuthRepository implements AuthRepository {
-  FirebaseAuthRepository(this._auth);
+  FirebaseAuthRepository(this._auth, this._googleSignIn);
 
   final FirebaseAuth _auth;
+  final GoogleSignIn _googleSignIn;
 
   @override
   Stream<AppUser?> authStateChanges() {
@@ -25,12 +27,30 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signIn() async {
-    await _auth.signInAnonymously();
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        await _auth.signInAnonymously();
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await _auth.signInWithCredential(credential);
+    } catch (_) {
+      await _auth.signInAnonymously();
+    }
   }
 
   @override
   Future<void> signOut() async {
     await _auth.signOut();
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {}
   }
 }
 
