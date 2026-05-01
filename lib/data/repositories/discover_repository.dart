@@ -8,6 +8,11 @@ abstract class DiscoverRepository {
     required String currentUserId,
     required UserPreferences preferences,
   });
+  Future<void> markProfileSeen({
+    required String currentUserId,
+    required String targetUserId,
+    required String action,
+  });
 }
 
 class FirestoreDiscoverRepository implements DiscoverRepository {
@@ -17,9 +22,17 @@ class FirestoreDiscoverRepository implements DiscoverRepository {
 
   @override
   Future<List<FinderProfile>> fetchProfiles({required String currentUserId, required UserPreferences preferences}) async {
+    final seenSnapshot = await _firestore
+        .collection('users')
+        .doc(currentUserId)
+        .collection('seen_profiles')
+        .limit(500)
+        .get();
+    final seenIds = seenSnapshot.docs.map((d) => d.id).toSet();
+
     final snapshot = await _firestore.collection('profiles').limit(100).get();
     final profiles = snapshot.docs
-        .where((doc) => doc.id != currentUserId)
+        .where((doc) => doc.id != currentUserId && !seenIds.contains(doc.id))
         .map((doc) {
           final data = doc.data();
           return FinderProfile(
@@ -40,9 +53,28 @@ class FirestoreDiscoverRepository implements DiscoverRepository {
 
     return profiles;
   }
+
+  @override
+  Future<void> markProfileSeen({
+    required String currentUserId,
+    required String targetUserId,
+    required String action,
+  }) async {
+    await _firestore
+        .collection('users')
+        .doc(currentUserId)
+        .collection('seen_profiles')
+        .doc(targetUserId)
+        .set({
+      'action': action,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }
 
 class MockDiscoverRepository implements DiscoverRepository {
+  final Set<String> _seen = {};
+
   @override
   Future<List<FinderProfile>> fetchProfiles({required String currentUserId, required UserPreferences preferences}) async {
     const all = [
@@ -70,8 +102,18 @@ class MockDiscoverRepository implements DiscoverRepository {
     ];
 
     return all
+        .where((p) => !_seen.contains(p.id))
         .where((p) => p.age >= preferences.minAge && p.age <= preferences.maxAge)
         .where((p) => p.distanceKm <= preferences.maxDistanceKm)
         .toList();
+  }
+
+  @override
+  Future<void> markProfileSeen({
+    required String currentUserId,
+    required String targetUserId,
+    required String action,
+  }) async {
+    _seen.add(targetUserId);
   }
 }

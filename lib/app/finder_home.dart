@@ -149,7 +149,19 @@ class _FinderHomeState extends State<FinderHome> {
     );
   }
 
-  void _nextProfile() => setState(() => _profileIndex++);
+  void _nextProfile() {
+    if (_profiles.isNotEmpty) {
+      final profile = _profiles[_profileIndex % _profiles.length];
+      unawaited(
+        widget.discoverRepository.markProfileSeen(
+          currentUserId: widget.currentUser.id,
+          targetUserId: profile.id,
+          action: 'pass',
+        ),
+      );
+    }
+    setState(() => _profileIndex++);
+  }
 
   Future<void> _likeProfile() async {
     if (_profiles.isEmpty) return;
@@ -157,6 +169,11 @@ class _FinderHomeState extends State<FinderHome> {
     final isMatch = await widget.matchRepository.sendLike(
       fromUserId: widget.currentUser.id,
       toUserId: profile.id,
+    );
+    await widget.discoverRepository.markProfileSeen(
+      currentUserId: widget.currentUser.id,
+      targetUserId: profile.id,
+      action: 'like',
     );
 
     setState(() {
@@ -186,6 +203,11 @@ class _FinderHomeState extends State<FinderHome> {
     final isMatch = await widget.matchRepository.sendLike(
       fromUserId: widget.currentUser.id,
       toUserId: profile.id,
+    );
+    await widget.discoverRepository.markProfileSeen(
+      currentUserId: widget.currentUser.id,
+      targetUserId: profile.id,
+      action: 'super_like',
     );
 
     setState(() => _profileIndex++);
@@ -223,6 +245,11 @@ class _FinderHomeState extends State<FinderHome> {
       targetUserId: profile.id,
       reason: 'reporte rapido desde discover',
     );
+    await widget.discoverRepository.markProfileSeen(
+      currentUserId: widget.currentUser.id,
+      targetUserId: profile.id,
+      action: 'report',
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Perfil de ${profile.name} reportado.')),
@@ -235,6 +262,11 @@ class _FinderHomeState extends State<FinderHome> {
     await widget.safetyRepository.blockUser(
       byUserId: widget.currentUser.id,
       targetUserId: profile.id,
+    );
+    await widget.discoverRepository.markProfileSeen(
+      currentUserId: widget.currentUser.id,
+      targetUserId: profile.id,
+      action: 'block',
     );
     if (!mounted) return;
     setState(() => _profileIndex++);
