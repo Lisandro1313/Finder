@@ -5,6 +5,7 @@ class FinderProfile {
     required this.age,
     required this.distanceKm,
     required this.bio,
+    this.photoUrl,
   });
 
   final String id;
@@ -12,4 +13,5 @@ class FinderProfile {
   final int age;
   final int distanceKm;
   final String bio;
+  final String? photoUrl;
 }

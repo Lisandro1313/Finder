@@ -5,6 +5,7 @@ class UserProfile {
     required this.age,
     required this.bio,
     required this.distanceKm,
+    this.photoUrl,
   });
 
   final String id;
@@ -12,4 +13,5 @@ class UserProfile {
   final int age;
   final String bio;
   final int distanceKm;
+  final String? photoUrl;
 }

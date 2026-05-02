@@ -6,8 +6,9 @@
 - [ ] SHA-1 and SHA-256 loaded in Firebase Project Settings
 - [ ] Firebase Auth: Google + Anonymous enabled
 - [ ] Firestore database enabled
+- [ ] Storage enabled
 - [ ] Cloud Messaging enabled
-- [ ] Firestore rules and indexes deployed (`firebase deploy --only firestore`)
+- [ ] Firestore/Storage rules and indexes deployed (`firebase deploy --only firestore,storage`)
 
 ## 2) Functions setup
 

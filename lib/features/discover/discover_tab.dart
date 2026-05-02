@@ -181,6 +181,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                                         label: profile.name,
                                         radius: 40,
                                         showRing: true,
+                                        imageUrl: profile.photoUrl,
                                       ),
                                     ),
                                   ],

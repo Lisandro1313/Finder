@@ -6,6 +6,7 @@ $checks = @(
   @{ Name = 'google-services.json'; Path = 'android/app/google-services.json'; Required = $true },
   @{ Name = 'firebase.json'; Path = 'firebase.json'; Required = $true },
   @{ Name = 'Firestore rules'; Path = 'firestore.rules'; Required = $true },
+  @{ Name = 'Storage rules'; Path = 'storage.rules'; Required = $true },
   @{ Name = 'Functions package.json'; Path = 'functions/package.json'; Required = $true },
   @{ Name = 'Pubspec'; Path = 'pubspec.yaml'; Required = $true }
 )

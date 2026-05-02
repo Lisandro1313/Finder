@@ -21,9 +21,10 @@ Base MVP de app de citas para Android con Flutter.
 5. Habilitar en Firebase:
    - Authentication -> Google + Anonymous
    - Firestore Database
+   - Storage
    - Cloud Messaging
 6. Publicar reglas e indices:
-   - `firebase deploy --only firestore`
+   - `firebase deploy --only firestore,storage`
 
 ## Activar admin para moderacion
 

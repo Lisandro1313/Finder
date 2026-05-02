@@ -1,5 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import '../models/user_preferences.dart';
 import '../models/user_profile.dart';
@@ -10,12 +14,18 @@ abstract class ProfileRepository {
   Future<void> savePushToken({required String userId, required String token});
   Stream<UserPreferences> watchPreferences(String userId);
   Future<void> savePreferences({required String userId, required UserPreferences preferences});
+  Future<String?> uploadProfilePhoto({
+    required String userId,
+    required Uint8List bytes,
+    required String fileExtension,
+  });
 }
 
 class FirestoreProfileRepository implements ProfileRepository {
-  FirestoreProfileRepository(this._firestore);
+  FirestoreProfileRepository(this._firestore, this._storage);
 
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
   @override
   Stream<UserProfile?> watchProfile(String userId) {
@@ -28,6 +38,7 @@ class FirestoreProfileRepository implements ProfileRepository {
         age: (data['age'] as num?)?.toInt() ?? 18,
         bio: data['bio'] as String? ?? '',
         distanceKm: (data['distanceKm'] as num?)?.toInt() ?? 10,
+        photoUrl: data['photoUrl'] as String?,
       );
     });
   }
@@ -39,6 +50,7 @@ class FirestoreProfileRepository implements ProfileRepository {
       'age': profile.age,
       'bio': profile.bio,
       'distanceKm': profile.distanceKm,
+      if (profile.photoUrl != null) 'photoUrl': profile.photoUrl,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -71,6 +83,31 @@ class FirestoreProfileRepository implements ProfileRepository {
       'prefMaxDistanceKm': preferences.maxDistanceKm,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<String?> uploadProfilePhoto({
+    required String userId,
+    required Uint8List bytes,
+    required String fileExtension,
+  }) async {
+    final ext = fileExtension.isEmpty ? 'jpg' : fileExtension;
+    final ref = _storage
+        .ref()
+        .child('profiles')
+        .child(userId)
+        .child('avatar_${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+    final metadata = SettableMetadata(contentType: 'image/$ext');
+    final task = await ref.putData(bytes, metadata);
+    final url = await task.ref.getDownloadURL();
+
+    await _firestore.collection('profiles').doc(userId).set({
+      'photoUrl': url,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    return url;
   }
 }
 
@@ -107,4 +144,26 @@ class MockProfileRepository implements ProfileRepository {
 
   @override
   Stream<UserPreferences> watchPreferences(String userId) => _preferencesController.stream;
+
+  @override
+  Future<String?> uploadProfilePhoto({
+    required String userId,
+    required Uint8List bytes,
+    required String fileExtension,
+  }) async {
+    final mime = fileExtension.isEmpty ? 'jpeg' : fileExtension;
+    final dataUrl = 'data:image/$mime;base64,${base64Encode(bytes)}';
+    if (_profile == null) return dataUrl;
+
+    _profile = UserProfile(
+      id: _profile!.id,
+      name: _profile!.name,
+      age: _profile!.age,
+      bio: _profile!.bio,
+      distanceKm: _profile!.distanceKm,
+      photoUrl: dataUrl,
+    );
+    _profileController.add(_profile);
+    return dataUrl;
+  }
 }

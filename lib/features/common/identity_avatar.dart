@@ -8,6 +8,7 @@ class IdentityAvatar extends StatelessWidget {
     this.radius = 22,
     this.showRing = false,
     this.heroTag,
+    this.imageUrl,
   });
 
   final String seed;
@@ -15,36 +16,27 @@ class IdentityAvatar extends StatelessWidget {
   final double radius;
   final bool showRing;
   final String? heroTag;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
     final colors = _paletteForSeed(seed);
     final initials = _initialsFromLabel(label);
 
+    final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
     final avatar = CircleAvatar(
       radius: radius,
       backgroundColor: Colors.transparent,
-      child: Container(
-        width: radius * 2,
-        height: radius * 2,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: colors,
-          ),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          initials,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: radius * 0.65,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.2,
-          ),
-        ),
+      child: ClipOval(
+        child: hasImage
+            ? Image.network(
+                imageUrl!,
+                width: radius * 2,
+                height: radius * 2,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _InitialsCircle(radius: radius, colors: colors, initials: initials),
+              )
+            : _InitialsCircle(radius: radius, colors: colors, initials: initials),
       ),
     );
 
@@ -66,6 +58,44 @@ class IdentityAvatar extends StatelessWidget {
     }
 
     return result;
+  }
+}
+
+class _InitialsCircle extends StatelessWidget {
+  const _InitialsCircle({
+    required this.radius,
+    required this.colors,
+    required this.initials,
+  });
+
+  final double radius;
+  final List<Color> colors;
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: radius * 0.65,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
   }
 }
 

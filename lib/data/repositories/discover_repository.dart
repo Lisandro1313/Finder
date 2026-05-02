@@ -42,6 +42,7 @@ class FirestoreDiscoverRepository implements DiscoverRepository {
             age: (data['age'] as num?)?.toInt() ?? 18,
             distanceKm: (data['distanceKm'] as num?)?.toInt() ?? 1,
             bio: data['bio'] as String? ?? 'Sin bio por ahora.',
+            photoUrl: data['photoUrl'] as String?,
           );
         })
         .where((p) => p.age >= preferences.minAge && p.age <= preferences.maxAge)
@@ -96,6 +97,7 @@ class MockDiscoverRepository implements DiscoverRepository {
         age: 24,
         distanceKm: 2,
         bio: 'Cafe, gym y viajes cortos.',
+        photoUrl: null,
       ),
       FinderProfile(
         id: 'lucas_27',
@@ -103,6 +105,7 @@ class MockDiscoverRepository implements DiscoverRepository {
         age: 27,
         distanceKm: 4,
         bio: 'Sushi fan, perro lover, full buena onda.',
+        photoUrl: null,
       ),
       FinderProfile(
         id: 'valen_22',
@@ -110,6 +113,7 @@ class MockDiscoverRepository implements DiscoverRepository {
         age: 22,
         distanceKm: 1,
         bio: 'Me gusta bailar, hablar de todo y salir.',
+        photoUrl: null,
       ),
     ];
 

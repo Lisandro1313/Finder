@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/report_item.dart';
 import '../../data/models/user_preferences.dart';
@@ -36,6 +37,7 @@ class _ProfileTabState extends State<ProfileTab> {
   final _minAgeController = TextEditingController();
   final _maxAgeController = TextEditingController();
   final _maxDistanceController = TextEditingController();
+  bool _uploadingPhoto = false;
 
   @override
   void dispose() {
@@ -79,10 +81,23 @@ class _ProfileTabState extends State<ProfileTab> {
                         label: profile.name,
                         radius: 22,
                         showRing: true,
+                        imageUrl: profile.photoUrl,
                       ),
                       title: Text(profile.name),
                       subtitle: const Text('Tu presencia en Finder'),
                     ),
+                    FilledButton.tonalIcon(
+                      onPressed: _uploadingPhoto ? null : () => _pickAndUploadPhoto(profile),
+                      icon: _uploadingPhoto
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.photo_camera_back_outlined),
+                      label: Text(_uploadingPhoto ? 'Subiendo foto...' : 'Subir foto de perfil'),
+                    ),
+                    const SizedBox(height: 8),
                     ListTile(title: const Text('Sesion'), subtitle: Text(widget.sessionLabel)),
                     ListTile(title: const Text('User ID'), subtitle: Text(widget.currentUserId)),
                     const SizedBox(height: 6),
@@ -302,5 +317,58 @@ class _ProfileTabState extends State<ProfileTab> {
       text: nextValue,
       selection: TextSelection.collapsed(offset: nextValue.length),
     );
+  }
+
+  Future<void> _pickAndUploadPhoto(UserProfile currentProfile) async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1080,
+      imageQuality: 86,
+    );
+
+    if (file == null) return;
+
+    setState(() => _uploadingPhoto = true);
+    try {
+      final bytes = await file.readAsBytes();
+      final extension = _fileExtension(file.name);
+      final url = await widget.profileRepository.uploadProfilePhoto(
+        userId: widget.currentUserId,
+        bytes: bytes,
+        fileExtension: extension,
+      );
+
+      if (url != null && currentProfile.photoUrl != url) {
+        await widget.profileRepository.saveProfile(
+          UserProfile(
+            id: currentProfile.id,
+            name: currentProfile.name,
+            age: currentProfile.age,
+            bio: currentProfile.bio,
+            distanceKm: currentProfile.distanceKm,
+            photoUrl: url,
+          ),
+        );
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto de perfil actualizada.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo subir la foto. Intenta nuevamente.')),
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
+
+  String _fileExtension(String fileName) {
+    final idx = fileName.lastIndexOf('.');
+    if (idx == -1 || idx == fileName.length - 1) return 'jpg';
+    return fileName.substring(idx + 1).toLowerCase();
   }
 }
