@@ -92,6 +92,10 @@ Archivos generados:
 Copy de ficha Play Store en espanol:
 - `PLAY_STORE_METADATA_ES.md`
 
+Notas de release y guia de subida:
+- `RELEASE_NOTES_1.0.1.md`
+- `PLAY_CONSOLE_UPLOAD_STEPS.md`
+
 ## Ejecutar app
 
 ```bash

@@ -24,8 +24,9 @@ Empieza hoy y encuentra tu proximo match.
 dating, citas, match, chat, conocer gente, parejas, encuentros, app de citas
 
 ## Notas de publicacion (release notes)
-Lanzamiento inicial de Finder:
-- Nuevo diseno premium y experiencia mas fluida.
-- Match y chat en tiempo real.
-- Super Like y Boost para mejorar visibilidad.
-- Mejoras de onboarding y rendimiento general.
+Version 1.0.1 (Build 2):
+- Diseno premium renovado y transiciones mas fluidas.
+- Onboarding por pasos y mejor experiencia de primer uso.
+- Reacciones rapidas en chat y feedback visual/tactil en acciones clave.
+- Celebracion animada al hacer match.
+- Mejoras generales de estabilidad y rendimiento.
