@@ -27,6 +27,7 @@ class DiscoverTab extends StatefulWidget {
     required this.onSelectQuickFilter,
     required this.retentionState,
     required this.onClaimMission,
+    required this.onRefreshProfiles,
   });
 
   final List<FinderProfile> profiles;
@@ -44,6 +45,7 @@ class DiscoverTab extends StatefulWidget {
   final ValueChanged<String> onSelectQuickFilter;
   final RetentionState retentionState;
   final Future<void> Function(String missionId) onClaimMission;
+  final Future<void> Function() onRefreshProfiles;
 
   @override
   State<DiscoverTab> createState() => _DiscoverTabState();
@@ -128,6 +130,14 @@ class _DiscoverTabState extends State<DiscoverTab> {
                     label: '25-35',
                     selected: widget.quickFilterKey == '25_35',
                     onTap: () => widget.onSelectQuickFilter('25_35'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      UiFeedback.selection();
+                      widget.onRefreshProfiles();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Actualizar'),
                   ),
                 ],
               ),
@@ -449,7 +459,24 @@ class _EarlyAccessMissionsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Early Access: recompensas de hoy', style: TextStyle(fontWeight: FontWeight.w800)),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Early Access: recompensas de hoy',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2EFF8),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text('Racha ${retentionState.streakDays}d'),
+                ),
+              ],
+            ),
             const SizedBox(height: 6),
             const Text('Sin bots ni likes falsos: todo se desbloquea por actividad real.'),
             const SizedBox(height: 12),

@@ -26,6 +26,7 @@ class RetentionState {
   const RetentionState({
     required this.earlyAccess,
     required this.dateKey,
+    required this.streakDays,
     required this.likesToday,
     required this.superLikesToday,
     required this.chatsOpenedToday,
@@ -34,6 +35,7 @@ class RetentionState {
 
   final bool earlyAccess;
   final String dateKey;
+  final int streakDays;
   final int likesToday;
   final int superLikesToday;
   final int chatsOpenedToday;
@@ -43,6 +45,7 @@ class RetentionState {
     return RetentionState(
       earlyAccess: true,
       dateKey: dateKey,
+      streakDays: 1,
       likesToday: 0,
       superLikesToday: 0,
       chatsOpenedToday: 0,

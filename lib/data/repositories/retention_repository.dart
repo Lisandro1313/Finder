@@ -27,6 +27,7 @@ class FirestoreRetentionRepository implements RetentionRepository {
       final likes = sameDay ? (data['retentionLikesToday'] as num?)?.toInt() ?? 0 : 0;
       final superLikes = sameDay ? (data['retentionSuperLikesToday'] as num?)?.toInt() ?? 0 : 0;
       final chatsOpened = sameDay ? (data['retentionChatsOpenedToday'] as num?)?.toInt() ?? 0 : 0;
+      final streakDays = (data['retentionStreakDays'] as num?)?.toInt() ?? 1;
 
       final claimLikes = sameDay ? data['retentionClaimLikes'] as bool? ?? false : false;
       final claimSuper = sameDay ? data['retentionClaimSuperLike'] as bool? ?? false : false;
@@ -35,6 +36,7 @@ class FirestoreRetentionRepository implements RetentionRepository {
       return RetentionState(
         earlyAccess: true,
         dateKey: today,
+        streakDays: streakDays < 1 ? 1 : streakDays,
         likesToday: likes,
         superLikesToday: superLikes,
         chatsOpenedToday: chatsOpened,
@@ -166,6 +168,10 @@ class FirestoreRetentionRepository implements RetentionRepository {
       };
 
       if (!sameDay) {
+        final previousDate = data['retentionDateKey'] as String?;
+        final previousStreak = (data['retentionStreakDays'] as num?)?.toInt() ?? 1;
+        final yesterday = _shiftDateKey(today, -1);
+        next['retentionStreakDays'] = previousDate == yesterday ? previousStreak + 1 : 1;
         next['retentionClaimLikes'] = false;
         next['retentionClaimSuperLike'] = false;
         next['retentionClaimChat'] = false;
@@ -237,6 +243,7 @@ class MockRetentionRepository implements RetentionRepository {
       RetentionState(
         earlyAccess: true,
         dateKey: nowKey,
+        streakDays: 1,
         likesToday: _likes,
         superLikesToday: _superLikes,
         chatsOpenedToday: _chats,
@@ -286,4 +293,13 @@ String _todayKey() {
   final mm = now.month.toString().padLeft(2, '0');
   final dd = now.day.toString().padLeft(2, '0');
   return '${now.year}-$mm-$dd';
+}
+
+String _shiftDateKey(String yyyyMmDd, int days) {
+  final parsed = DateTime.tryParse(yyyyMmDd);
+  if (parsed == null) return yyyyMmDd;
+  final shifted = parsed.add(Duration(days: days));
+  final mm = shifted.month.toString().padLeft(2, '0');
+  final dd = shifted.day.toString().padLeft(2, '0');
+  return '${shifted.year}-$mm-$dd';
 }

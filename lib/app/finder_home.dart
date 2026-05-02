@@ -140,6 +140,7 @@ class _FinderHomeState extends State<FinderHome> {
         onSelectQuickFilter: _applyQuickFilter,
         retentionState: _retentionState,
         onClaimMission: _claimMission,
+        onRefreshProfiles: _loadProfiles,
       ),
       MatchesTab(
         currentUserId: widget.currentUser.id,
@@ -177,6 +178,23 @@ class _FinderHomeState extends State<FinderHome> {
             key: ValueKey(_currentIndex),
           ),
         ),
+        actions: [
+          _RewardsBadgeButton(
+            pendingCount: _retentionState.missions
+                .where((mission) => mission.completed && !mission.claimed)
+                .length,
+            onTap: () {
+              UiFeedback.selection();
+              setState(() => _currentIndex = 0);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Revisa tus misiones de Early Access y reclama recompensas.'),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 10),
+        ],
       ),
       body: FinderAtmosphere(
         child: SafeArea(
@@ -428,6 +446,53 @@ class _FinderHomeState extends State<FinderHome> {
         ),
       );
     });
+  }
+}
+
+class _RewardsBadgeButton extends StatelessWidget {
+  const _RewardsBadgeButton({
+    required this.pendingCount,
+    required this.onTap,
+  });
+
+  final int pendingCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(Icons.emoji_events_outlined),
+            if (pendingCount > 0)
+              Positioned(
+                right: -6,
+                top: -6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE11D48),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    pendingCount > 9 ? '9+' : '$pendingCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
