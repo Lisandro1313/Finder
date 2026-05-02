@@ -14,6 +14,7 @@ import '../data/repositories/profile_repository.dart';
 import '../data/repositories/safety_repository.dart';
 import '../features/chats/chats_tab.dart';
 import '../features/common/finder_atmosphere.dart';
+import '../features/common/match_celebration_overlay.dart';
 import '../features/common/ui_feedback.dart';
 import '../features/discover/discover_tab.dart';
 import '../features/matches/matches_tab.dart';
@@ -222,6 +223,8 @@ class _FinderHomeState extends State<FinderHome> {
 
     if (!mounted) return;
     if (isMatch) {
+      unawaited(UiFeedback.emphasis());
+      unawaited(showMatchCelebration(context, profile.name));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Match con ${profile.name}! Ya puedes chatear.')),
       );
@@ -256,6 +259,8 @@ class _FinderHomeState extends State<FinderHome> {
       SnackBar(content: Text('Super Like enviado a ${profile.name}.')),
     );
     if (isMatch) {
+      unawaited(UiFeedback.emphasis());
+      unawaited(showMatchCelebration(context, profile.name));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Match instantaneo con ${profile.name}!')),
       );

@@ -127,10 +127,10 @@ class FinderApp extends StatelessWidget {
                 letterSpacing: -1.2,
               ),
               headlineSmall: const TextStyle(
-                fontSize: 28,
+                fontSize: 30,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF1F1B2D),
-                letterSpacing: -0.7,
+                letterSpacing: -0.6,
               ),
               titleMedium: const TextStyle(
                 fontSize: 18,
@@ -138,12 +138,12 @@ class FinderApp extends StatelessWidget {
                 color: Color(0xFF1F1B2D),
               ),
               bodyLarge: const TextStyle(
-                fontSize: 20,
-                height: 1.45,
+                fontSize: 18,
+                height: 1.4,
                 color: Color(0xFF3A3451),
               ),
               bodyMedium: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 height: 1.45,
                 color: Color(0xFF5A546F),
               ),
@@ -165,7 +165,7 @@ class FinderApp extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: brand,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 15),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
@@ -173,7 +173,7 @@ class FinderApp extends StatelessWidget {
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: const Color(0xFF1F1B2D),
-            padding: const EdgeInsets.symmetric(vertical: 15),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             side: const BorderSide(color: Color(0xFFD8D3E8)),
             textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
