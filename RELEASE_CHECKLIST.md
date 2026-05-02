@@ -47,6 +47,12 @@
 - [ ] Add testers
 - [ ] Validate crash-free startup and core flows
 
+## 7) Store listing assets
+
+- [ ] Run Play Store asset prep (`scripts/prepare_play_store.ps1`)
+- [ ] Upload icon + feature graphic from `assets/branding/`
+- [ ] Paste listing copy from `PLAY_STORE_METADATA_ES.md`
+
 ## Helpers
 
 Preflight:
@@ -59,4 +65,10 @@ Release build:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/release_build.ps1
+```
+
+Play Store assets:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/prepare_play_store.ps1
 ```

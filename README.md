@@ -63,6 +63,35 @@ Build AAB automatizado:
 powershell -ExecutionPolicy Bypass -File scripts/release_build.ps1
 ```
 
+## Branding y Play Store assets
+
+Generar icono y feature graphic base:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/generate_brand_assets.ps1
+```
+
+Regenerar launcher icon Android con la configuracion de `flutter_launcher_icons`:
+
+```bash
+flutter pub get
+dart run flutter_launcher_icons
+```
+
+Preparar todo en un solo paso (assets + iconos + checks):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/prepare_play_store.ps1
+```
+
+Archivos generados:
+- `assets/branding/finder_launcher_1024.png`
+- `assets/branding/finder_launcher_foreground.png`
+- `assets/branding/finder_feature_graphic_1024x500.png`
+
+Copy de ficha Play Store en espanol:
+- `PLAY_STORE_METADATA_ES.md`
+
 ## Ejecutar app
 
 ```bash
