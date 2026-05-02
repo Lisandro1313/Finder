@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/match_item.dart';
+import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/match_repository.dart';
+import '../chat/chat_screen.dart';
 import '../common/display_name.dart';
 import '../common/empty_state_panel.dart';
 import '../common/identity_avatar.dart';
 import '../common/time_ago.dart';
+import '../common/ui_feedback.dart';
 
 class MatchesTab extends StatelessWidget {
   const MatchesTab({
     super.key,
     required this.currentUserId,
     required this.matchRepository,
+    required this.chatRepository,
   });
 
   final String currentUserId;
   final MatchRepository matchRepository;
+  final ChatRepository chatRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +45,7 @@ class MatchesTab extends StatelessWidget {
             final match = matches[index];
             final otherId = match.otherUser(currentUserId);
             final otherName = displayNameFromId(otherId);
+            final avatarHeroTag = 'chat_avatar_$otherId';
             final timeAgo = formatTimeAgo(match.updatedAt);
             final activeNow = match.updatedAt != null &&
                 DateTime.now().difference(match.updatedAt!).inMinutes < 5;
@@ -64,7 +70,12 @@ class MatchesTab extends StatelessWidget {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   leading: Stack(
                     children: [
-                      IdentityAvatar(seed: otherId, label: otherName, radius: 22),
+                      IdentityAvatar(
+                        seed: otherId,
+                        label: otherName,
+                        radius: 22,
+                        heroTag: avatarHeroTag,
+                      ),
                       if (activeNow)
                         Positioned(
                           right: 0,
@@ -96,9 +107,37 @@ class MatchesTab extends StatelessWidget {
                             color: Color(0xFF00A63E),
                             fontWeight: FontWeight.w700,
                           ),
-                        ),
-                    ],
+                      ),
+                  ],
                   ),
+                  onTap: () {
+                    UiFeedback.selection();
+                    Navigator.of(context).push(
+                      PageRouteBuilder(
+                        transitionDuration: const Duration(milliseconds: 280),
+                        reverseTransitionDuration: const Duration(milliseconds: 220),
+                        pageBuilder: (_, __, ___) => ChatScreen(
+                          matchId: match.id,
+                          currentUserId: currentUserId,
+                          chatRepository: chatRepository,
+                          chatTitle: otherName,
+                          avatarSeed: otherId,
+                          avatarLabel: otherName,
+                          avatarHeroTag: avatarHeroTag,
+                        ),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          final slide = Tween<Offset>(
+                            begin: const Offset(0.02, 0),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(position: slide, child: child),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
               ),
             );

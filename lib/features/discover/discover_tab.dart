@@ -47,6 +47,7 @@ class DiscoverTab extends StatefulWidget {
 class _DiscoverTabState extends State<DiscoverTab> {
   _ReactionFeedback _feedback = _ReactionFeedback.none;
   Timer? _feedbackTimer;
+  double _dragDx = 0;
 
   @override
   void dispose() {
@@ -124,58 +125,71 @@ class _DiscoverTabState extends State<DiscoverTab> {
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 260),
-                  child: Card(
+                  child: GestureDetector(
                     key: ValueKey(profile.id),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 130,
-                          child: Stack(
-                            fit: StackFit.expand,
+                    onPanUpdate: (details) {
+                      setState(() => _dragDx += details.delta.dx);
+                    },
+                    onPanEnd: (_) => _finishSwipe(),
+                    onPanCancel: _resetSwipe,
+                    child: Transform.translate(
+                      offset: Offset(_dragDx, 0),
+                      child: Transform.rotate(
+                        angle: (_dragDx / 900).clamp(-0.18, 0.18),
+                        child: Card(
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                decoration: const BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [Color(0xFFE11D48), Color(0xFFFF8A65)],
-                                  ),
+                              SizedBox(
+                                height: 130,
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    Container(
+                                      decoration: const BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [Color(0xFFE11D48), Color(0xFFFF8A65)],
+                                        ),
+                                      ),
+                                    ),
+                                    Center(
+                                      child: IdentityAvatar(
+                                        seed: profile.id,
+                                        label: profile.name,
+                                        radius: 40,
+                                        showRing: true,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Center(
-                                child: IdentityAvatar(
-                                  seed: profile.id,
-                                  label: profile.name,
-                                  radius: 40,
-                                  showRing: true,
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${profile.name}, ${profile.age}', style: theme.textTheme.headlineSmall),
+                                      const SizedBox(height: 6),
+                                      Text('A ${profile.distanceKm} km', style: theme.textTheme.titleMedium),
+                                      const SizedBox(height: 12),
+                                      Text(profile.bio, style: theme.textTheme.bodyLarge),
+                                      const Spacer(),
+                                      Text(
+                                        'Desliza: izquierda para pasar, derecha para like.',
+                                        style: theme.textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('${profile.name}, ${profile.age}', style: theme.textTheme.headlineSmall),
-                                const SizedBox(height: 6),
-                                Text('A ${profile.distanceKm} km', style: theme.textTheme.titleMedium),
-                                const SizedBox(height: 12),
-                                Text(profile.bio, style: theme.textTheme.bodyLarge),
-                                const Spacer(),
-                                Text(
-                                  'Manten el ritmo: cuanto mas interactuas, mejores matches aparecen.',
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -256,27 +270,53 @@ class _DiscoverTabState extends State<DiscoverTab> {
     );
   }
 
+  void _finishSwipe() {
+    const threshold = 110.0;
+    final dx = _dragDx;
+    if (dx > threshold) {
+      _handleLike();
+      return;
+    }
+    if (dx < -threshold) {
+      _handlePass();
+      return;
+    }
+    _resetSwipe();
+  }
+
   void _handlePass() {
     UiFeedback.selection();
     _emitFeedback(_ReactionFeedback.pass);
+    _resetSwipe();
     widget.onPass();
   }
 
   void _handleLike() {
+    if (widget.onLike == null) {
+      UiFeedback.warning();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sin likes disponibles. Prueba mas tarde o usa Premium.')),
+      );
+      _resetSwipe();
+      return;
+    }
     UiFeedback.success();
     _emitFeedback(_ReactionFeedback.like);
-    widget.onLike?.call();
+    _resetSwipe();
+    widget.onLike!.call();
   }
 
   void _handleSuperLike() {
     UiFeedback.emphasis();
     _emitFeedback(_ReactionFeedback.superLike);
+    _resetSwipe();
     widget.onSuperLike();
   }
 
   void _handleBoost() {
     UiFeedback.emphasis();
     _emitFeedback(_ReactionFeedback.boost);
+    _resetSwipe();
     widget.onBoostTap();
   }
 
@@ -287,6 +327,11 @@ class _DiscoverTabState extends State<DiscoverTab> {
       if (!mounted) return;
       setState(() => _feedback = _ReactionFeedback.none);
     });
+  }
+
+  void _resetSwipe() {
+    if (!mounted) return;
+    setState(() => _dragDx = 0);
   }
 }
 

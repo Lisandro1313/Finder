@@ -121,7 +121,11 @@ class _FinderHomeState extends State<FinderHome> {
         quickFilterKey: _quickFilterKey,
         onSelectQuickFilter: _applyQuickFilter,
       ),
-      MatchesTab(currentUserId: widget.currentUser.id, matchRepository: widget.matchRepository),
+      MatchesTab(
+        currentUserId: widget.currentUser.id,
+        matchRepository: widget.matchRepository,
+        chatRepository: widget.chatRepository,
+      ),
       ChatsTab(
         currentUserId: widget.currentUser.id,
         matchRepository: widget.matchRepository,
