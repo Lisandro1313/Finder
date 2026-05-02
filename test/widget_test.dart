@@ -24,6 +24,9 @@ void main() {
       ),
     );
 
+    await tester.pump(const Duration(milliseconds: 1700));
+    await tester.pump();
+
     expect(find.text('Continuar con Google'), findsOneWidget);
   });
 }

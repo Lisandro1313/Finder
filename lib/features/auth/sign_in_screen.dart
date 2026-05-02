@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/finder_logo_mark.dart';
+
 class SignInScreen extends StatelessWidget {
   const SignInScreen({
     super.key,
@@ -42,19 +44,7 @@ class SignInScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 16),
-                  Container(
-                    height: 54,
-                    width: 54,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFE11D48), Color(0xFFFF6B6B)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.favorite, color: Colors.white, size: 28),
-                  ),
+                  const FinderLogoMark(size: 56, iconSize: 28, showShadow: true),
                   const SizedBox(height: 28),
                   Text('Finder', style: theme.textTheme.displaySmall),
                   const SizedBox(height: 8),
