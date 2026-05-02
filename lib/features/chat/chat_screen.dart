@@ -4,6 +4,8 @@ import '../../data/models/chat_message.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../common/empty_state_panel.dart';
 import '../common/finder_atmosphere.dart';
+import '../common/identity_avatar.dart';
+import '../common/ui_feedback.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -12,12 +14,18 @@ class ChatScreen extends StatefulWidget {
     required this.currentUserId,
     required this.chatRepository,
     this.chatTitle,
+    this.avatarSeed,
+    this.avatarLabel,
+    this.avatarHeroTag,
   });
 
   final String matchId;
   final String currentUserId;
   final ChatRepository chatRepository;
   final String? chatTitle;
+  final String? avatarSeed;
+  final String? avatarLabel;
+  final String? avatarHeroTag;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -42,8 +50,25 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final title = widget.chatTitle ?? 'Chat';
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.chatTitle ?? 'Chat')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            if (widget.avatarSeed != null && widget.avatarLabel != null) ...[
+              IdentityAvatar(
+                seed: widget.avatarSeed!,
+                label: widget.avatarLabel!,
+                radius: 15,
+                heroTag: widget.avatarHeroTag,
+              ),
+              const SizedBox(width: 10),
+            ],
+            Flexible(child: Text(title, overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+      ),
       body: FinderAtmosphere(
         child: Column(
           children: [
@@ -102,7 +127,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           itemBuilder: (context, index) {
                             final emoji = _quickReactions[index];
                             return InkWell(
-                              onTap: () => _sendQuickReaction(emoji),
+                              onTap: () {
+                                UiFeedback.selection();
+                                _sendQuickReaction(emoji);
+                              },
                               borderRadius: BorderRadius.circular(999),
                               child: Ink(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -131,7 +159,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           const SizedBox(width: 8),
                           FilledButton.tonal(
-                            onPressed: _send,
+                            onPressed: () {
+                              UiFeedback.success();
+                              _send();
+                            },
                             style: FilledButton.styleFrom(
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

@@ -7,12 +7,14 @@ class IdentityAvatar extends StatelessWidget {
     required this.label,
     this.radius = 22,
     this.showRing = false,
+    this.heroTag,
   });
 
   final String seed;
   final String label;
   final double radius;
   final bool showRing;
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -46,16 +48,24 @@ class IdentityAvatar extends StatelessWidget {
       ),
     );
 
-    if (!showRing) return avatar;
+    Widget result = avatar;
 
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFE11D48), width: 1.4),
-      ),
-      child: avatar,
-    );
+    if (showRing) {
+      result = Container(
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFFE11D48), width: 1.4),
+        ),
+        child: avatar,
+      );
+    }
+
+    if (heroTag != null) {
+      result = Hero(tag: heroTag!, child: result);
+    }
+
+    return result;
   }
 }
 

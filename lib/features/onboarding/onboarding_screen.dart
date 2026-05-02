@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/ui_feedback.dart';
+
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({
     super.key,
@@ -204,9 +206,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_step == 0) {
       final name = _nameController.text.trim();
       if (name.isEmpty) {
+        UiFeedback.warning();
         _showValidation('Escribe tu nombre para continuar.');
         return;
       }
+      UiFeedback.selection();
       setState(() => _step = 1);
       return;
     }
@@ -214,9 +218,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_step == 1) {
       final bio = _bioController.text.trim();
       if (bio.isEmpty) {
+        UiFeedback.warning();
         _showValidation('Escribe una bio para continuar.');
         return;
       }
+      UiFeedback.selection();
       setState(() => _step = 2);
       return;
     }
@@ -232,6 +238,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         (int.tryParse(_distanceController.text.trim()) ?? 10).clamp(1, 200).toInt();
 
     if (name.isEmpty || bio.isEmpty) {
+      UiFeedback.warning();
       _showValidation('Completa nombre y bio.');
       return;
     }
@@ -239,7 +246,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() => _saving = true);
     try {
       await widget.onSave(name: name, age: age, bio: bio, distanceKm: distanceKm);
+      UiFeedback.success();
     } catch (_) {
+      UiFeedback.warning();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo guardar el perfil. Intenta otra vez.')),

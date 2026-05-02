@@ -14,6 +14,7 @@ import '../data/repositories/profile_repository.dart';
 import '../data/repositories/safety_repository.dart';
 import '../features/chats/chats_tab.dart';
 import '../features/common/finder_atmosphere.dart';
+import '../features/common/ui_feedback.dart';
 import '../features/discover/discover_tab.dart';
 import '../features/matches/matches_tab.dart';
 import '../features/premium/premium_tab.dart';
@@ -170,7 +171,10 @@ class _FinderHomeState extends State<FinderHome> {
           borderRadius: BorderRadius.circular(24),
           child: NavigationBar(
             selectedIndex: _currentIndex,
-            onDestinationSelected: (index) => setState(() => _currentIndex = index),
+            onDestinationSelected: (index) {
+              UiFeedback.selection();
+              setState(() => _currentIndex = index);
+            },
             destinations: const [
               NavigationDestination(icon: Icon(Icons.favorite_outline), label: 'Descubrir'),
               NavigationDestination(icon: Icon(Icons.people_outline), label: 'Matches'),

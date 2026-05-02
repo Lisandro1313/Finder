@@ -6,6 +6,7 @@ import '../../data/models/finder_profile.dart';
 import '../../data/models/user_preferences.dart';
 import '../common/empty_state_panel.dart';
 import '../common/identity_avatar.dart';
+import '../common/ui_feedback.dart';
 
 class DiscoverTab extends StatefulWidget {
   const DiscoverTab({
@@ -256,21 +257,25 @@ class _DiscoverTabState extends State<DiscoverTab> {
   }
 
   void _handlePass() {
+    UiFeedback.selection();
     _emitFeedback(_ReactionFeedback.pass);
     widget.onPass();
   }
 
   void _handleLike() {
+    UiFeedback.success();
     _emitFeedback(_ReactionFeedback.like);
     widget.onLike?.call();
   }
 
   void _handleSuperLike() {
+    UiFeedback.emphasis();
     _emitFeedback(_ReactionFeedback.superLike);
     widget.onSuperLike();
   }
 
   void _handleBoost() {
+    UiFeedback.emphasis();
     _emitFeedback(_ReactionFeedback.boost);
     widget.onBoostTap();
   }

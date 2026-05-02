@@ -8,6 +8,7 @@ import '../common/display_name.dart';
 import '../common/empty_state_panel.dart';
 import '../common/identity_avatar.dart';
 import '../common/time_ago.dart';
+import '../common/ui_feedback.dart';
 
 class ChatsTab extends StatelessWidget {
   const ChatsTab({
@@ -46,6 +47,7 @@ class ChatsTab extends StatelessWidget {
             final otherName = displayNameFromId(otherId);
             final timeAgo = formatTimeAgo(match.updatedAt);
             final sentByMe = match.lastSenderId == currentUserId;
+            final avatarHeroTag = 'chat_avatar_$otherId';
 
             return TweenAnimationBuilder<double>(
               key: ValueKey(match.id),
@@ -65,7 +67,11 @@ class ChatsTab extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 10),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  leading: IdentityAvatar(seed: otherId, label: otherName),
+                  leading: IdentityAvatar(
+                    seed: otherId,
+                    label: otherName,
+                    heroTag: avatarHeroTag,
+                  ),
                   title: Text(otherName),
                   subtitle: Text(
                     '${sentByMe ? 'Tu: ' : ''}${match.lastMessage}',
@@ -74,14 +80,30 @@ class ChatsTab extends StatelessWidget {
                   ),
                   trailing: Text(timeAgo, style: theme.textTheme.bodySmall),
                   onTap: () {
+                    UiFeedback.selection();
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => ChatScreen(
+                      PageRouteBuilder(
+                        transitionDuration: const Duration(milliseconds: 280),
+                        reverseTransitionDuration: const Duration(milliseconds: 220),
+                        pageBuilder: (_, __, ___) => ChatScreen(
                           matchId: match.id,
                           currentUserId: currentUserId,
                           chatRepository: chatRepository,
                           chatTitle: otherName,
+                          avatarSeed: otherId,
+                          avatarLabel: otherName,
+                          avatarHeroTag: avatarHeroTag,
                         ),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          final slide = Tween<Offset>(
+                            begin: const Offset(0.02, 0),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(position: slide, child: child),
+                          );
+                        },
                       ),
                     );
                   },
