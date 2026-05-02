@@ -16,11 +16,13 @@ class ChatsTab extends StatelessWidget {
     required this.currentUserId,
     required this.matchRepository,
     required this.chatRepository,
+    this.onOpenChat,
   });
 
   final String currentUserId;
   final MatchRepository matchRepository;
   final ChatRepository chatRepository;
+  final Future<void> Function()? onOpenChat;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +83,9 @@ class ChatsTab extends StatelessWidget {
                   trailing: Text(timeAgo, style: theme.textTheme.bodySmall),
                   onTap: () {
                     UiFeedback.selection();
+                    if (onOpenChat != null) {
+                      onOpenChat!();
+                    }
                     Navigator.of(context).push(
                       PageRouteBuilder(
                         transitionDuration: const Duration(milliseconds: 280),

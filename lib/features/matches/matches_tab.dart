@@ -16,11 +16,13 @@ class MatchesTab extends StatelessWidget {
     required this.currentUserId,
     required this.matchRepository,
     required this.chatRepository,
+    this.onOpenChat,
   });
 
   final String currentUserId;
   final MatchRepository matchRepository;
   final ChatRepository chatRepository;
+  final Future<void> Function()? onOpenChat;
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +114,9 @@ class MatchesTab extends StatelessWidget {
                   ),
                   onTap: () {
                     UiFeedback.selection();
+                    if (onOpenChat != null) {
+                      onOpenChat!();
+                    }
                     Navigator.of(context).push(
                       PageRouteBuilder(
                         transitionDuration: const Duration(milliseconds: 280),

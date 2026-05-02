@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../data/models/app_user.dart';
 import '../data/models/finder_profile.dart';
+import '../data/models/retention_state.dart';
 import '../data/models/user_entitlements.dart';
 import '../data/models/user_preferences.dart';
 import '../data/repositories/chat_repository.dart';
@@ -11,6 +12,7 @@ import '../data/repositories/discover_repository.dart';
 import '../data/repositories/entitlement_repository.dart';
 import '../data/repositories/match_repository.dart';
 import '../data/repositories/profile_repository.dart';
+import '../data/repositories/retention_repository.dart';
 import '../data/repositories/safety_repository.dart';
 import '../features/chats/chats_tab.dart';
 import '../features/common/finder_atmosphere.dart';
@@ -30,6 +32,7 @@ class FinderHome extends StatefulWidget {
     required this.chatRepository,
     required this.profileRepository,
     required this.entitlementRepository,
+    required this.retentionRepository,
     required this.safetyRepository,
     required this.onLogout,
   });
@@ -40,6 +43,7 @@ class FinderHome extends StatefulWidget {
   final ChatRepository chatRepository;
   final ProfileRepository profileRepository;
   final EntitlementRepository entitlementRepository;
+  final RetentionRepository retentionRepository;
   final SafetyRepository safetyRepository;
   final Future<void> Function() onLogout;
 
@@ -57,11 +61,17 @@ class _FinderHomeState extends State<FinderHome> {
   String _quickFilterKey = 'all';
   StreamSubscription<UserEntitlements>? _entSub;
   StreamSubscription<UserPreferences>? _prefSub;
+  StreamSubscription<RetentionState>? _retSub;
+  RetentionState _retentionState = RetentionState.emptyForDate(_todayKey());
+  Timer? _nudge5;
+  Timer? _nudge10;
+  Timer? _nudge15;
 
   @override
   void initState() {
     super.initState();
     _loadProfiles();
+    _scheduleRetentionNudges();
     _entSub = widget.entitlementRepository.watchEntitlements(widget.currentUser.id).listen((value) {
       if (!mounted) return;
       setState(() {
@@ -78,12 +88,20 @@ class _FinderHomeState extends State<FinderHome> {
       setState(() => _preferences = value);
       _loadProfiles();
     });
+    _retSub = widget.retentionRepository.watchState(widget.currentUser.id).listen((value) {
+      if (!mounted) return;
+      setState(() => _retentionState = value);
+    });
   }
 
   @override
   void dispose() {
     _entSub?.cancel();
     _prefSub?.cancel();
+    _retSub?.cancel();
+    _nudge5?.cancel();
+    _nudge10?.cancel();
+    _nudge15?.cancel();
     super.dispose();
   }
 
@@ -120,16 +138,20 @@ class _FinderHomeState extends State<FinderHome> {
         preferences: _preferences,
         quickFilterKey: _quickFilterKey,
         onSelectQuickFilter: _applyQuickFilter,
+        retentionState: _retentionState,
+        onClaimMission: _claimMission,
       ),
       MatchesTab(
         currentUserId: widget.currentUser.id,
         matchRepository: widget.matchRepository,
         chatRepository: widget.chatRepository,
+        onOpenChat: _recordChatOpened,
       ),
       ChatsTab(
         currentUserId: widget.currentUser.id,
         matchRepository: widget.matchRepository,
         chatRepository: widget.chatRepository,
+        onOpenChat: _recordChatOpened,
       ),
       PremiumTab(userId: widget.currentUser.id, entitlementRepository: widget.entitlementRepository),
       ProfileTab(
@@ -219,6 +241,7 @@ class _FinderHomeState extends State<FinderHome> {
       targetUserId: profile.id,
       action: 'like',
     );
+    unawaited(widget.retentionRepository.recordLikeGiven(widget.currentUser.id));
 
     setState(() {
       _dailyLikesLeft--;
@@ -255,6 +278,7 @@ class _FinderHomeState extends State<FinderHome> {
       targetUserId: profile.id,
       action: 'super_like',
     );
+    unawaited(widget.retentionRepository.recordSuperLikeGiven(widget.currentUser.id));
 
     setState(() => _profileIndex++);
 
@@ -353,4 +377,63 @@ class _FinderHomeState extends State<FinderHome> {
     setState(() => _profileIndex = 0);
     await _loadProfiles();
   }
+
+  Future<void> _claimMission(String missionId) async {
+    final granted = await widget.retentionRepository.claimMission(
+      userId: widget.currentUser.id,
+      missionId: missionId,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          granted
+              ? 'Recompensa reclamada. Revisa tus Super Likes/Boosts.'
+              : 'Mision aun no lista o ya reclamada hoy.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _recordChatOpened() async {
+    await widget.retentionRepository.recordChatOpened(widget.currentUser.id);
+  }
+
+  void _scheduleRetentionNudges() {
+    _nudge5 = Timer(const Duration(minutes: 5), () {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tip Early Access: completa misiones de hoy y gana recompensas gratis.'),
+        ),
+      );
+    });
+
+    _nudge10 = Timer(const Duration(minutes: 10), () async {
+      if (!mounted) return;
+      await _loadProfiles();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Actualizamos tu feed con nuevos perfiles compatibles.'),
+        ),
+      );
+    });
+
+    _nudge15 = Timer(const Duration(minutes: 15), () {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Abre un chat hoy y desbloquea una recompensa de Early Access.'),
+        ),
+      );
+    });
+  }
+}
+
+String _todayKey() {
+  final now = DateTime.now();
+  final mm = now.month.toString().padLeft(2, '0');
+  final dd = now.day.toString().padLeft(2, '0');
+  return '${now.year}-$mm-$dd';
 }

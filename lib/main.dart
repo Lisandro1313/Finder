@@ -13,6 +13,7 @@ import 'data/repositories/discover_repository.dart';
 import 'data/repositories/entitlement_repository.dart';
 import 'data/repositories/match_repository.dart';
 import 'data/repositories/profile_repository.dart';
+import 'data/repositories/retention_repository.dart';
 import 'data/repositories/safety_repository.dart';
 import 'services/notification_service.dart';
 
@@ -47,6 +48,9 @@ Future<void> main() async {
   final entitlementRepository = useFirebaseBackend
       ? FirestoreEntitlementRepository(FirebaseFirestore.instance)
       : MockEntitlementRepository();
+  final retentionRepository = useFirebaseBackend
+      ? FirestoreRetentionRepository(FirebaseFirestore.instance)
+      : MockRetentionRepository();
   final notificationService = useFirebaseBackend
       ? NotificationService(FirebaseMessaging.instance, profileRepository)
       : null;
@@ -58,6 +62,7 @@ Future<void> main() async {
     matchRepository: matchRepository,
     chatRepository: chatRepository,
     entitlementRepository: entitlementRepository,
+    retentionRepository: retentionRepository,
     safetyRepository: safetyRepository,
     notificationService: notificationService,
   ));
@@ -72,6 +77,7 @@ class FinderApp extends StatelessWidget {
     required this.matchRepository,
     required this.chatRepository,
     required this.entitlementRepository,
+    required this.retentionRepository,
     required this.safetyRepository,
     required this.notificationService,
   });
@@ -82,6 +88,7 @@ class FinderApp extends StatelessWidget {
   final MatchRepository matchRepository;
   final ChatRepository chatRepository;
   final EntitlementRepository entitlementRepository;
+  final RetentionRepository retentionRepository;
   final SafetyRepository safetyRepository;
   final NotificationService? notificationService;
 
@@ -212,6 +219,7 @@ class FinderApp extends StatelessWidget {
         matchRepository: matchRepository,
         chatRepository: chatRepository,
         entitlementRepository: entitlementRepository,
+        retentionRepository: retentionRepository,
         safetyRepository: safetyRepository,
         notificationService: notificationService,
       ),

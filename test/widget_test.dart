@@ -6,6 +6,7 @@ import 'package:finder_app/data/repositories/discover_repository.dart';
 import 'package:finder_app/data/repositories/entitlement_repository.dart';
 import 'package:finder_app/data/repositories/match_repository.dart';
 import 'package:finder_app/data/repositories/profile_repository.dart';
+import 'package:finder_app/data/repositories/retention_repository.dart';
 import 'package:finder_app/data/repositories/safety_repository.dart';
 import 'package:finder_app/main.dart';
 
@@ -19,6 +20,7 @@ void main() {
         matchRepository: MockMatchRepository(),
         chatRepository: MockChatRepository(),
         entitlementRepository: MockEntitlementRepository(),
+        retentionRepository: MockRetentionRepository(),
         safetyRepository: MockSafetyRepository(),
         notificationService: null,
       ),

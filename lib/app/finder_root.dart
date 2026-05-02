@@ -10,6 +10,7 @@ import '../data/repositories/discover_repository.dart';
 import '../data/repositories/entitlement_repository.dart';
 import '../data/repositories/match_repository.dart';
 import '../data/repositories/profile_repository.dart';
+import '../data/repositories/retention_repository.dart';
 import '../data/repositories/safety_repository.dart';
 import '../features/auth/sign_in_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
@@ -26,6 +27,7 @@ class FinderRoot extends StatefulWidget {
     required this.matchRepository,
     required this.chatRepository,
     required this.entitlementRepository,
+    required this.retentionRepository,
     required this.safetyRepository,
     required this.notificationService,
   });
@@ -36,6 +38,7 @@ class FinderRoot extends StatefulWidget {
   final MatchRepository matchRepository;
   final ChatRepository chatRepository;
   final EntitlementRepository entitlementRepository;
+  final RetentionRepository retentionRepository;
   final SafetyRepository safetyRepository;
   final NotificationService? notificationService;
 
@@ -122,6 +125,7 @@ class _FinderRootState extends State<FinderRoot> {
           chatRepository: widget.chatRepository,
           profileRepository: widget.profileRepository,
           entitlementRepository: widget.entitlementRepository,
+          retentionRepository: widget.retentionRepository,
           safetyRepository: widget.safetyRepository,
           onLogout: widget.authRepository.signOut,
         );

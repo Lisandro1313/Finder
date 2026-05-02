@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../data/models/finder_profile.dart';
+import '../../data/models/retention_state.dart';
 import '../../data/models/user_preferences.dart';
 import '../common/empty_state_panel.dart';
 import '../common/identity_avatar.dart';
@@ -24,6 +25,8 @@ class DiscoverTab extends StatefulWidget {
     required this.preferences,
     required this.quickFilterKey,
     required this.onSelectQuickFilter,
+    required this.retentionState,
+    required this.onClaimMission,
   });
 
   final List<FinderProfile> profiles;
@@ -39,6 +42,8 @@ class DiscoverTab extends StatefulWidget {
   final UserPreferences preferences;
   final String quickFilterKey;
   final ValueChanged<String> onSelectQuickFilter;
+  final RetentionState retentionState;
+  final Future<void> Function(String missionId) onClaimMission;
 
   @override
   State<DiscoverTab> createState() => _DiscoverTabState();
@@ -93,6 +98,11 @@ class _DiscoverTabState extends State<DiscoverTab> {
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 10),
+              _EarlyAccessMissionsCard(
+                retentionState: widget.retentionState,
+                onClaimMission: widget.onClaimMission,
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -415,6 +425,93 @@ class _PillStat extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text('$label: $value'),
+    );
+  }
+}
+
+class _EarlyAccessMissionsCard extends StatelessWidget {
+  const _EarlyAccessMissionsCard({
+    required this.retentionState,
+    required this.onClaimMission,
+  });
+
+  final RetentionState retentionState;
+  final Future<void> Function(String missionId) onClaimMission;
+
+  @override
+  Widget build(BuildContext context) {
+    final missions = retentionState.missions;
+    if (missions.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Early Access: recompensas de hoy', style: TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            const Text('Sin bots ni likes falsos: todo se desbloquea por actividad real.'),
+            const SizedBox(height: 12),
+            ...missions.map((mission) {
+              final percent = (mission.progress / mission.target).clamp(0, 1).toDouble();
+              final rewardLabel = [
+                if (mission.rewardSuperLikes > 0) '+${mission.rewardSuperLikes} Super Like',
+                if (mission.rewardBoosts > 0) '+${mission.rewardBoosts} Boost',
+              ].join(' | ');
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7F4FF),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(mission.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text(mission.description),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          minHeight: 8,
+                          value: percent,
+                          backgroundColor: const Color(0xFFE2DDEF),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${mission.progress}/${mission.target} · Recompensa: $rewardLabel',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                          if (mission.claimed)
+                            const Text(
+                              'Reclamada',
+                              style: TextStyle(color: Color(0xFF0E9F6E), fontWeight: FontWeight.w700),
+                            )
+                          else
+                            FilledButton.tonal(
+                              onPressed: mission.completed ? () => onClaimMission(mission.id) : null,
+                              child: const Text('Reclamar'),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 }
