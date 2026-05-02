@@ -22,6 +22,7 @@ import '../features/discover/discover_tab.dart';
 import '../features/matches/matches_tab.dart';
 import '../features/premium/premium_tab.dart';
 import '../features/profile/profile_tab.dart';
+import '../services/location_service.dart';
 
 class FinderHome extends StatefulWidget {
   const FinderHome({
@@ -34,6 +35,7 @@ class FinderHome extends StatefulWidget {
     required this.entitlementRepository,
     required this.retentionRepository,
     required this.safetyRepository,
+    required this.locationService,
     required this.onLogout,
   });
 
@@ -45,6 +47,7 @@ class FinderHome extends StatefulWidget {
   final EntitlementRepository entitlementRepository;
   final RetentionRepository retentionRepository;
   final SafetyRepository safetyRepository;
+  final LocationService locationService;
   final Future<void> Function() onLogout;
 
   @override
@@ -66,13 +69,20 @@ class _FinderHomeState extends State<FinderHome> {
   Timer? _nudge5;
   Timer? _nudge10;
   Timer? _nudge15;
+  double? _currentLatitude;
+  double? _currentLongitude;
+  bool _locationDeniedNotified = false;
 
   @override
   void initState() {
     super.initState();
     _loadProfiles();
+    unawaited(_syncCurrentLocation(showDeniedMessage: true)
+        .then((_) => _loadProfiles()));
     _scheduleRetentionNudges();
-    _entSub = widget.entitlementRepository.watchEntitlements(widget.currentUser.id).listen((value) {
+    _entSub = widget.entitlementRepository
+        .watchEntitlements(widget.currentUser.id)
+        .listen((value) {
       if (!mounted) return;
       setState(() {
         final previousLimit = _entitlements.dailyLikesLimit();
@@ -83,12 +93,16 @@ class _FinderHomeState extends State<FinderHome> {
         }
       });
     });
-    _prefSub = widget.profileRepository.watchPreferences(widget.currentUser.id).listen((value) {
+    _prefSub = widget.profileRepository
+        .watchPreferences(widget.currentUser.id)
+        .listen((value) {
       if (!mounted) return;
       setState(() => _preferences = value);
       _loadProfiles();
     });
-    _retSub = widget.retentionRepository.watchState(widget.currentUser.id).listen((value) {
+    _retSub = widget.retentionRepository
+        .watchState(widget.currentUser.id)
+        .listen((value) {
       if (!mounted) return;
       setState(() => _retentionState = value);
     });
@@ -109,6 +123,8 @@ class _FinderHomeState extends State<FinderHome> {
     final profiles = await widget.discoverRepository.fetchProfiles(
       currentUserId: widget.currentUser.id,
       preferences: _preferences,
+      currentLatitude: _currentLatitude,
+      currentLongitude: _currentLongitude,
     );
     if (!mounted) return;
     setState(() {
@@ -117,6 +133,11 @@ class _FinderHomeState extends State<FinderHome> {
         _profileIndex = 0;
       }
     });
+  }
+
+  Future<void> _refreshProfiles() async {
+    await _syncCurrentLocation(showDeniedMessage: false);
+    await _loadProfiles();
   }
 
   @override
@@ -140,7 +161,7 @@ class _FinderHomeState extends State<FinderHome> {
         onSelectQuickFilter: _applyQuickFilter,
         retentionState: _retentionState,
         onClaimMission: _claimMission,
-        onRefreshProfiles: _loadProfiles,
+        onRefreshProfiles: _refreshProfiles,
       ),
       MatchesTab(
         currentUserId: widget.currentUser.id,
@@ -154,7 +175,9 @@ class _FinderHomeState extends State<FinderHome> {
         chatRepository: widget.chatRepository,
         onOpenChat: _recordChatOpened,
       ),
-      PremiumTab(userId: widget.currentUser.id, entitlementRepository: widget.entitlementRepository),
+      PremiumTab(
+          userId: widget.currentUser.id,
+          entitlementRepository: widget.entitlementRepository),
       ProfileTab(
         currentUserId: widget.currentUser.id,
         profileRepository: widget.profileRepository,
@@ -188,7 +211,8 @@ class _FinderHomeState extends State<FinderHome> {
               setState(() => _currentIndex = 0);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Revisa tus misiones de Early Access y reclama recompensas.'),
+                  content: Text(
+                      'Revisa tus misiones de Early Access y reclama recompensas.'),
                 ),
               );
             },
@@ -221,11 +245,17 @@ class _FinderHomeState extends State<FinderHome> {
               setState(() => _currentIndex = index);
             },
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.favorite_outline), label: 'Descubrir'),
-              NavigationDestination(icon: Icon(Icons.people_outline), label: 'Matches'),
-              NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
-              NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Premium'),
-              NavigationDestination(icon: Icon(Icons.person_outline), label: 'Perfil'),
+              NavigationDestination(
+                  icon: Icon(Icons.favorite_outline), label: 'Descubrir'),
+              NavigationDestination(
+                  icon: Icon(Icons.people_outline), label: 'Matches'),
+              NavigationDestination(
+                  icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
+              NavigationDestination(
+                  icon: Icon(Icons.workspace_premium_outlined),
+                  label: 'Premium'),
+              NavigationDestination(
+                  icon: Icon(Icons.person_outline), label: 'Perfil'),
             ],
           ),
         ),
@@ -259,7 +289,8 @@ class _FinderHomeState extends State<FinderHome> {
       targetUserId: profile.id,
       action: 'like',
     );
-    unawaited(widget.retentionRepository.recordLikeGiven(widget.currentUser.id));
+    unawaited(
+        widget.retentionRepository.recordLikeGiven(widget.currentUser.id));
 
     setState(() {
       _dailyLikesLeft--;
@@ -271,7 +302,8 @@ class _FinderHomeState extends State<FinderHome> {
       unawaited(UiFeedback.emphasis());
       unawaited(showMatchCelebration(context, profile.name));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Match con ${profile.name}! Ya puedes chatear.')),
+        SnackBar(
+            content: Text('Match con ${profile.name}! Ya puedes chatear.')),
       );
     }
   }
@@ -280,7 +312,8 @@ class _FinderHomeState extends State<FinderHome> {
     if (_profiles.isEmpty) return;
     if (_entitlements.superLikeCount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No tienes Super Likes. Compra en Premium.')),
+        const SnackBar(
+            content: Text('No tienes Super Likes. Compra en Premium.')),
       );
       return;
     }
@@ -296,7 +329,8 @@ class _FinderHomeState extends State<FinderHome> {
       targetUserId: profile.id,
       action: 'super_like',
     );
-    unawaited(widget.retentionRepository.recordSuperLikeGiven(widget.currentUser.id));
+    unawaited(
+        widget.retentionRepository.recordSuperLikeGiven(widget.currentUser.id));
 
     setState(() => _profileIndex++);
 
@@ -390,7 +424,8 @@ class _FinderHomeState extends State<FinderHome> {
   }
 
   Future<void> _resetFeed() async {
-    await widget.discoverRepository.clearSeenProfiles(currentUserId: widget.currentUser.id);
+    await widget.discoverRepository
+        .clearSeenProfiles(currentUserId: widget.currentUser.id);
     if (!mounted) return;
     setState(() => _profileIndex = 0);
     await _loadProfiles();
@@ -417,23 +452,52 @@ class _FinderHomeState extends State<FinderHome> {
     await widget.retentionRepository.recordChatOpened(widget.currentUser.id);
   }
 
+  Future<void> _syncCurrentLocation({required bool showDeniedMessage}) async {
+    final location = await widget.locationService.getCurrentLocation();
+    if (!mounted) return;
+
+    if (location == null) {
+      if (showDeniedMessage && !_locationDeniedNotified) {
+        _locationDeniedNotified = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Activa ubicacion para ver distancias reales cerca tuyo.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    _locationDeniedNotified = false;
+    _currentLatitude = location.latitude;
+    _currentLongitude = location.longitude;
+    await widget.profileRepository.saveCoordinates(
+      userId: widget.currentUser.id,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    );
+  }
+
   void _scheduleRetentionNudges() {
     _nudge5 = Timer(const Duration(minutes: 5), () {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tip Early Access: completa misiones de hoy y gana recompensas gratis.'),
+          content: Text(
+              'Tip Early Access: completa misiones de hoy y gana recompensas gratis.'),
         ),
       );
     });
 
     _nudge10 = Timer(const Duration(minutes: 10), () async {
       if (!mounted) return;
-      await _loadProfiles();
+      await _refreshProfiles();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Actualizamos tu feed con nuevos perfiles compatibles.'),
+          content:
+              Text('Actualizamos tu feed con nuevos perfiles compatibles.'),
         ),
       );
     });
@@ -442,7 +506,8 @@ class _FinderHomeState extends State<FinderHome> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Abre un chat hoy y desbloquea una recompensa de Early Access.'),
+          content: Text(
+              'Abre un chat hoy y desbloquea una recompensa de Early Access.'),
         ),
       );
     });
@@ -474,7 +539,8 @@ class _RewardsBadgeButton extends StatelessWidget {
                 right: -6,
                 top: -6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE11D48),
                     borderRadius: BorderRadius.circular(999),

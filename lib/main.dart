@@ -16,6 +16,7 @@ import 'data/repositories/match_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/retention_repository.dart';
 import 'data/repositories/safety_repository.dart';
+import 'services/location_service.dart';
 import 'services/notification_service.dart';
 
 Future<void> main() async {
@@ -32,7 +33,8 @@ Future<void> main() async {
       ? FirebaseAuthRepository(FirebaseAuth.instance, GoogleSignIn())
       : MockAuthRepository();
   final profileRepository = useFirebaseBackend
-      ? FirestoreProfileRepository(FirebaseFirestore.instance, FirebaseStorage.instance)
+      ? FirestoreProfileRepository(
+          FirebaseFirestore.instance, FirebaseStorage.instance)
       : MockProfileRepository();
   final discoverRepository = useFirebaseBackend
       ? FirestoreDiscoverRepository(FirebaseFirestore.instance)
@@ -52,6 +54,8 @@ Future<void> main() async {
   final retentionRepository = useFirebaseBackend
       ? FirestoreRetentionRepository(FirebaseFirestore.instance)
       : MockRetentionRepository();
+  final locationService =
+      useFirebaseBackend ? GeolocatorLocationService() : MockLocationService();
   final notificationService = useFirebaseBackend
       ? NotificationService(FirebaseMessaging.instance, profileRepository)
       : null;
@@ -65,6 +69,7 @@ Future<void> main() async {
     entitlementRepository: entitlementRepository,
     retentionRepository: retentionRepository,
     safetyRepository: safetyRepository,
+    locationService: locationService,
     notificationService: notificationService,
   ));
 }
@@ -80,6 +85,7 @@ class FinderApp extends StatelessWidget {
     required this.entitlementRepository,
     required this.retentionRepository,
     required this.safetyRepository,
+    required this.locationService,
     required this.notificationService,
   });
 
@@ -91,6 +97,7 @@ class FinderApp extends StatelessWidget {
   final EntitlementRepository entitlementRepository;
   final RetentionRepository retentionRepository;
   final SafetyRepository safetyRepository;
+  final LocationService locationService;
   final NotificationService? notificationService;
 
   @override
@@ -125,7 +132,8 @@ class FinderApp extends StatelessWidget {
         cardTheme: CardTheme(
           color: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         ),
         textTheme: ThemeData.light().textTheme.copyWith(
               displaySmall: const TextStyle(
@@ -159,7 +167,8 @@ class FinderApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
@@ -174,8 +183,10 @@ class FinderApp extends StatelessWidget {
             backgroundColor: brand,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            textStyle:
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
@@ -183,8 +194,10 @@ class FinderApp extends StatelessWidget {
             foregroundColor: const Color(0xFF1F1B2D),
             padding: const EdgeInsets.symmetric(vertical: 14),
             side: const BorderSide(color: Color(0xFFD8D3E8)),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            textStyle:
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),
         navigationBarTheme: NavigationBarThemeData(
@@ -193,13 +206,16 @@ class FinderApp extends StatelessWidget {
           iconTheme: MaterialStateProperty.resolveWith<IconThemeData>((states) {
             final selected = states.contains(MaterialState.selected);
             return IconThemeData(
-              color: selected ? const Color(0xFFE11D48) : const Color(0xFF736A8A),
+              color:
+                  selected ? const Color(0xFFE11D48) : const Color(0xFF736A8A),
             );
           }),
-          labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((states) {
+          labelTextStyle:
+              MaterialStateProperty.resolveWith<TextStyle>((states) {
             final selected = states.contains(MaterialState.selected);
             return TextStyle(
-              color: selected ? const Color(0xFFE11D48) : const Color(0xFF736A8A),
+              color:
+                  selected ? const Color(0xFFE11D48) : const Color(0xFF736A8A),
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               fontSize: 12,
             );
@@ -208,7 +224,8 @@ class FinderApp extends StatelessWidget {
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF2C2640),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           contentTextStyle: const TextStyle(color: Colors.white),
         ),
         useMaterial3: true,
@@ -222,6 +239,7 @@ class FinderApp extends StatelessWidget {
         entitlementRepository: entitlementRepository,
         retentionRepository: retentionRepository,
         safetyRepository: safetyRepository,
+        locationService: locationService,
         notificationService: notificationService,
       ),
     );

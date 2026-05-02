@@ -38,56 +38,71 @@ class SignInScreen extends StatelessWidget {
             ),
           ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 16),
-                  const FinderLogoMark(size: 56, iconSize: 28, showShadow: true),
-                  const SizedBox(height: 28),
-                  Text('Finder', style: theme.textTheme.displaySmall),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Conecta con gente cerca, haz match y chatea en tiempo real.',
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  const Spacer(),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight - 48),
+                    child: IntrinsicHeight(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          FilledButton.icon(
-                            onPressed: isLoading ? null : onContinueWithGoogle,
-                            icon: const Icon(Icons.g_mobiledata, size: 24),
-                            label: isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Text('Continuar con Google'),
-                          ),
-                          const SizedBox(height: 10),
-                          OutlinedButton.icon(
-                            onPressed: isLoading ? null : onContinueAsGuest,
-                            icon: const Icon(Icons.person_outline),
-                            label: const Text('Entrar como invitado'),
-                          ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
+                          const FinderLogoMark(
+                              size: 56, iconSize: 28, showShadow: true),
+                          const SizedBox(height: 28),
+                          Text('Finder', style: theme.textTheme.displaySmall),
+                          const SizedBox(height: 8),
                           Text(
-                            'Si Google falla en local, usa invitado para seguir testeando.',
-                            style: theme.textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
+                            'Conecta con gente cerca, haz match y chatea en tiempo real.',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          const Spacer(),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(18),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  FilledButton.icon(
+                                    onPressed:
+                                        isLoading ? null : onContinueWithGoogle,
+                                    icon: const Icon(Icons.g_mobiledata,
+                                        size: 24),
+                                    label: isLoading
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          )
+                                        : const Text('Continuar con Google'),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  OutlinedButton.icon(
+                                    onPressed:
+                                        isLoading ? null : onContinueAsGuest,
+                                    icon: const Icon(Icons.person_outline),
+                                    label: const Text('Entrar como invitado'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Si Google falla en local, usa invitado para seguir testeando.',
+                                    style: theme.textTheme.bodyMedium,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],

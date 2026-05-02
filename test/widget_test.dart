@@ -9,6 +9,7 @@ import 'package:finder_app/data/repositories/profile_repository.dart';
 import 'package:finder_app/data/repositories/retention_repository.dart';
 import 'package:finder_app/data/repositories/safety_repository.dart';
 import 'package:finder_app/main.dart';
+import 'package:finder_app/services/location_service.dart';
 
 void main() {
   testWidgets('Finder app renders auth flow', (WidgetTester tester) async {
@@ -22,6 +23,7 @@ void main() {
         entitlementRepository: MockEntitlementRepository(),
         retentionRepository: MockRetentionRepository(),
         safetyRepository: MockSafetyRepository(),
+        locationService: MockLocationService(),
         notificationService: null,
       ),
     );

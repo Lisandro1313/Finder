@@ -11,9 +11,15 @@ import '../models/user_profile.dart';
 abstract class ProfileRepository {
   Stream<UserProfile?> watchProfile(String userId);
   Future<void> saveProfile(UserProfile profile);
+  Future<void> saveCoordinates({
+    required String userId,
+    required double latitude,
+    required double longitude,
+  });
   Future<void> savePushToken({required String userId, required String token});
   Stream<UserPreferences> watchPreferences(String userId);
-  Future<void> savePreferences({required String userId, required UserPreferences preferences});
+  Future<void> savePreferences(
+      {required String userId, required UserPreferences preferences});
   Future<String?> uploadProfilePhoto({
     required String userId,
     required Uint8List bytes,
@@ -56,7 +62,21 @@ class FirestoreProfileRepository implements ProfileRepository {
   }
 
   @override
-  Future<void> savePushToken({required String userId, required String token}) async {
+  Future<void> saveCoordinates({
+    required String userId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    await _firestore.collection('profiles').doc(userId).set({
+      'latitude': latitude,
+      'longitude': longitude,
+      'locationUpdatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> savePushToken(
+      {required String userId, required String token}) async {
     await _firestore.collection('profiles').doc(userId).set({
       'pushToken': token,
       'pushTokenUpdatedAt': FieldValue.serverTimestamp(),
@@ -68,15 +88,19 @@ class FirestoreProfileRepository implements ProfileRepository {
     return _firestore.collection('users').doc(userId).snapshots().map((doc) {
       final data = doc.data() ?? <String, dynamic>{};
       return UserPreferences(
-        minAge: (data['prefMinAge'] as num?)?.toInt() ?? UserPreferences.defaults.minAge,
-        maxAge: (data['prefMaxAge'] as num?)?.toInt() ?? UserPreferences.defaults.maxAge,
-        maxDistanceKm: (data['prefMaxDistanceKm'] as num?)?.toInt() ?? UserPreferences.defaults.maxDistanceKm,
+        minAge: (data['prefMinAge'] as num?)?.toInt() ??
+            UserPreferences.defaults.minAge,
+        maxAge: (data['prefMaxAge'] as num?)?.toInt() ??
+            UserPreferences.defaults.maxAge,
+        maxDistanceKm: (data['prefMaxDistanceKm'] as num?)?.toInt() ??
+            UserPreferences.defaults.maxDistanceKm,
       );
     });
   }
 
   @override
-  Future<void> savePreferences({required String userId, required UserPreferences preferences}) async {
+  Future<void> savePreferences(
+      {required String userId, required UserPreferences preferences}) async {
     await _firestore.collection('users').doc(userId).set({
       'prefMinAge': preferences.minAge,
       'prefMaxAge': preferences.maxAge,
@@ -131,19 +155,29 @@ class MockProfileRepository implements ProfileRepository {
   }
 
   @override
-  Future<void> savePushToken({required String userId, required String token}) async {}
+  Future<void> saveCoordinates({
+    required String userId,
+    required double latitude,
+    required double longitude,
+  }) async {}
+
+  @override
+  Future<void> savePushToken(
+      {required String userId, required String token}) async {}
 
   @override
   Stream<UserProfile?> watchProfile(String userId) => _profileController.stream;
 
   @override
-  Future<void> savePreferences({required String userId, required UserPreferences preferences}) async {
+  Future<void> savePreferences(
+      {required String userId, required UserPreferences preferences}) async {
     _preferences = preferences;
     _preferencesController.add(_preferences);
   }
 
   @override
-  Stream<UserPreferences> watchPreferences(String userId) => _preferencesController.stream;
+  Stream<UserPreferences> watchPreferences(String userId) =>
+      _preferencesController.stream;
 
   @override
   Future<String?> uploadProfilePhoto({

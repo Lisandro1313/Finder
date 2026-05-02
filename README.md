@@ -11,6 +11,7 @@ Base MVP de app de citas para Android con Flutter.
 - Push token registrado y Functions de push para match/mensaje.
 - Panel de moderacion basico para admins en Perfil.
 - Observabilidad de compras en Premium (status feed de `purchase_events`).
+- Distancias reales por GPS (si el usuario acepta permiso de ubicacion).
 
 ## Setup rapido
 
@@ -103,6 +104,8 @@ Notas de release y guia de subida:
 flutter pub get
 flutter run
 ```
+
+En web/local, acepta permiso de ubicacion en el navegador para ver distancias reales.
 
 ## Nota
 

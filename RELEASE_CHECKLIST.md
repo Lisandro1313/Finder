@@ -36,6 +36,7 @@
 ## 5) E2E social flow
 
 - [ ] User A and B login
+- [ ] Permiso de ubicacion aceptado y distancia real visible en Discover
 - [ ] Match created
 - [ ] Chat message received
 - [ ] Push notification received

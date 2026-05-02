@@ -15,6 +15,7 @@ import '../data/repositories/safety_repository.dart';
 import '../features/auth/sign_in_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/splash/finder_splash_screen.dart';
+import '../services/location_service.dart';
 import '../services/notification_service.dart';
 import 'finder_home.dart';
 
@@ -29,6 +30,7 @@ class FinderRoot extends StatefulWidget {
     required this.entitlementRepository,
     required this.retentionRepository,
     required this.safetyRepository,
+    required this.locationService,
     required this.notificationService,
   });
 
@@ -40,6 +42,7 @@ class FinderRoot extends StatefulWidget {
   final EntitlementRepository entitlementRepository;
   final RetentionRepository retentionRepository;
   final SafetyRepository safetyRepository;
+  final LocationService locationService;
   final NotificationService? notificationService;
 
   @override
@@ -99,12 +102,17 @@ class _FinderRootState extends State<FinderRoot> {
       stream: widget.profileRepository.watchProfile(_user!.id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
         }
 
         if (snapshot.data == null) {
           return OnboardingScreen(
-            onSave: ({required name, required age, required bio, required distanceKm}) {
+            onSave: (
+                {required name,
+                required age,
+                required bio,
+                required distanceKm}) {
               return widget.profileRepository.saveProfile(
                 UserProfile(
                   id: _user!.id,
@@ -127,6 +135,7 @@ class _FinderRootState extends State<FinderRoot> {
           entitlementRepository: widget.entitlementRepository,
           retentionRepository: widget.retentionRepository,
           safetyRepository: widget.safetyRepository,
+          locationService: widget.locationService,
           onLogout: widget.authRepository.signOut,
         );
       },
@@ -155,7 +164,8 @@ class _FinderRootState extends State<FinderRoot> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No pudimos entrar como invitado. Revisa Firebase Auth.'),
+          content:
+              Text('No pudimos entrar como invitado. Revisa Firebase Auth.'),
         ),
       );
     } finally {
